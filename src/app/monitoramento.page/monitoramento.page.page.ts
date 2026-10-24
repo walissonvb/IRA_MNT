@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { IonContent, IonTitle, IonToolbar } from '@ionic/angular';
+import { IonContent, IonTitle, IonToolbar, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
     thermometerOutline,
@@ -18,7 +18,7 @@ import { TecnicaPreditiva, Maquina } from '../models/index';
   templateUrl: './monitoramento.page.page.html',
   styleUrls: ['./monitoramento.page.page.scss'],
   standalone: true,
-  imports: [IonContent, IonTitle, IonToolbar, AppHeaderComponent]
+  imports: [IonContent, IonTitle, IonToolbar, IonIcon, AppHeaderComponent]
 })
 export class MonitoramentoPagePage implements OnInit {
   tecnicas: TecnicaPreditiva[] = [];
