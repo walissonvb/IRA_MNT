@@ -1,2 +1,25 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+/* Tokens de design Ronda PCM — otimizado a partir do modelo */
+
+:root {
+  --page-bg: #f3f1ec;
+  --card-bg: #fffcf7;
+  --line: #e4dfd4;
+  --ink: #1c1915;
+  --muted: #6d675f;
+  --accent: #1f4e5f;
+  --accent-hover: #1b4554;
+  --accent-active: #183c4a;
+  --accent-fg: #f7f4ee;
+  --ok: #1f6b45;
+  --ok-bg: #e5f2ea;
+  --warn: #9a4d12;
+  --warn-bg: #f8ecdf;
+  --crit: #8d2a2a;
+  --crit-bg: #f8e6e4;
+  --radius: 16px;
+  --radius-btn: 12px;
+  --radius-pill: 999px;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}

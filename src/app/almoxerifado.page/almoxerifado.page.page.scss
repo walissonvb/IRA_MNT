@@ -1,0 +1,31 @@
+@use '../../theme/page';
+.cartao {
+  cursor: default;
+
+  &.alerta {
+    border-color: var(--crit);
+  }
+}
+
+.qtd {
+  text-align: right;
+  flex-shrink: 0;
+
+  .valor {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .min {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  &.baixo .valor {
+    color: var(--crit);
+  }
+}

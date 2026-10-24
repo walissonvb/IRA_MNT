@@ -1,0 +1,30 @@
+@use '../../theme/page';
+
+.warn-icon {
+  color: var(--warn);
+  font-size: 22px;
+}
+
+.pecas {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.peca-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 4px 0;
+
+  .baixo {
+    color: var(--crit);
+    font-weight: 600;
+  }
+}
+
+.faint {
+  opacity: 0.75;
+}

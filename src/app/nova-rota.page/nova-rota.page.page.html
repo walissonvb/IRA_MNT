@@ -1,0 +1,155 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page">
+    <p class="kicker">Criar rota</p>
+    <h1 class="titulo">Nova ronda preditiva</h1>
+    <p class="subtitulo">
+      Escolha as técnicas, a equipe e a ordem dos equipamentos.
+    </p>
+
+    <div class="passo" aria-label="Progresso">
+      <div class="passo-item" [class.feito]="passo > 1" [class.ativo]="passo === 1"></div>
+      <div class="passo-item" [class.feito]="passo > 2" [class.ativo]="passo === 2"></div>
+      <div class="passo-item" [class.feito]="passo > 3" [class.ativo]="passo === 3"></div>
+      <div class="passo-item" [class.ativo]="passo === 4"></div>
+    </div>
+
+    @if (erro) {
+      <p class="erro">{{ erro }}</p>
+    }
+
+    <!-- PASSO 1: Técnicas -->
+    @if (passo === 1) {
+      <section class="bloco">
+        <h2 class="secao">1. Técnicas preditivas</h2>
+        <p class="hint">Selecione uma ou mais técnicas que serão aplicadas em todos os pontos da rota.</p>
+        <div class="chips">
+          @for (t of tecnicas; track t.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.selecionado]="isSelecionada(t.id)"
+              (click)="toggleTecnica(t.id)"
+            >
+              <ion-icon [name]="t.icon"></ion-icon>
+              {{ t.nome }}
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- PASSO 2: Equipe -->
+    @if (passo === 2) {
+      <section class="bloco">
+        <h2 class="secao">2. Equipe responsável</h2>
+        <ul class="lista">
+          @for (eq of equipes; track eq.id) {
+            <li>
+              <button
+                type="button"
+                class="cartao"
+                [class.selecionado]="equipeId === eq.id"
+                (click)="selecionarEquipe(eq.id)"
+              >
+                <div class="cartao-topo">
+                  <div class="cartao-texto">
+                    <strong>{{ eq.nome }}</strong>
+                    <small>{{ eq.membros.join(', ') }}</small>
+                  </div>
+                  @if (equipeId === eq.id) {
+                    <ion-icon name="checkmark-outline" class="check"></ion-icon>
+                  }
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- PASSO 3: Equipamentos em ordem -->
+    @if (passo === 3) {
+      <section class="bloco">
+        <h2 class="secao">3. Equipamentos (ordem da ronda)</h2>
+        <p class="hint">Toque para incluir. A ordem de toque define a sequência. Use as setas para reordenar.</p>
+
+        @if (ordem.length) {
+          <div class="ordem-preview">
+            <strong>Sequência atual</strong>
+            <ol>
+              @for (m of ordem; track m.id; let i = $index) {
+                <li>
+                  <span class="mono">{{ m.tag }}</span> — {{ m.nome }}
+                  <span class="mover">
+                    <button type="button" (click)="mover(i, -1)" [disabled]="i === 0" aria-label="Subir">↑</button>
+                    <button type="button" (click)="mover(i, 1)" [disabled]="i === ordem.length - 1" aria-label="Descer">↓</button>
+                  </span>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+
+        <ul class="lista">
+          @for (m of maquinas; track m.id) {
+            <li>
+              <button type="button" class="cartao" [class.selecionado]="posicao(m) > 0" (click)="toggleMaquina(m)">
+                <div class="cartao-topo">
+                  <div class="cartao-texto">
+                    <strong class="mono">{{ m.tag }}</strong>
+                    <small>{{ m.nome }} · {{ m.setor }}</small>
+                  </div>
+                  @if (posicao(m) > 0) {
+                    <span class="badge">{{ posicao(m) }}º</span>
+                  }
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- PASSO 4: Revisar e salvar -->
+    @if (passo === 4) {
+      <section class="bloco">
+        <h2 class="secao">4. Revisar e salvar</h2>
+
+        <div class="campo">
+          <label for="nome">Nome da rota</label>
+          <input id="nome" type="text" [(ngModel)]="nomeRota" placeholder="Ex: Ronda semanal utilidades" />
+        </div>
+
+        <div class="resumo">
+          <p><strong>Técnicas:</strong> {{ selecionadas.size }} selecionada(s)</p>
+          <p><strong>Equipe:</strong> {{ nomeEquipe() }}</p>
+          <p><strong>Pontos:</strong> {{ ordem.length }} equipamento(s)</p>
+        </div>
+      </section>
+    }
+
+    <div class="acoes">
+      @if (passo > 1) {
+        <ion-button class="btn-secundario" fill="outline" (click)="voltar()">
+          <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
+          Voltar
+        </ion-button>
+      }
+      <ion-button
+        class="btn-primario"
+        [class.btn-full]="passo === 1"
+        [disabled]="!podeAvancar() || salvando"
+        (click)="avancar()"
+      >
+        @if (passo < 4) {
+          Continuar
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        } @else {
+          {{ salvando ? 'Salvando…' : 'Salvar rota' }}
+        }
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

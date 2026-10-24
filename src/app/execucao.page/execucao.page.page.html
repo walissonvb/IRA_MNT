@@ -1,0 +1,149 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>execucao.page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">execucao.page</ion-title>
+    </ion-toolbar>
+  </ion-header>
+</ion-content>
+<app-header></app-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page">
+    @if (carregando) {
+      <div class="vazio">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Carregando rota…</p>
+      </div>
+    } @else if (erro || !rota) {
+      <p class="erro">{{ erro || 'Rota não encontrada.' }}</p>
+      <ion-button class="btn-secundario" fill="outline" routerLink="/lista-rotas">Voltar às rotas</ion-button>
+    } @else if (editando == null) {
+      <!-- LISTA DE EQUIPAMENTOS -->
+      <p class="kicker">{{ rota.equipeNome || 'Sem equipe' }}</p>
+      <h1 class="titulo">{{ rota.nome }}</h1>
+      <p class="subtitulo">
+        Toque em qualquer equipamento para iniciar/continuar a partir dele.
+        A sequência segue na ordem definida.
+      </p>
+
+      <div class="barra" role="progressbar"
+           [attr.aria-valuenow]="doneCount()"
+           [attr.aria-valuemax]="rota.stops.length">
+        <i [style.width.%]="progresso()"></i>
+      </div>
+      <small class="progresso-txt">
+        {{ doneCount() }} de {{ rota.stops.length }} ·
+        <span class="badge" [class]="rota.status">{{ rotuloStatus(rota.status) }}</span>
+      </small>
+
+      <section class="bloco" style="margin-top: 20px">
+        <ul class="lista">
+          @for (stop of rota.stops; track stop.ordem) {
+            <li>
+              <button type="button" class="cartao" (click)="abrirStop(stop.ordem)">
+                <div class="cartao-topo">
+                  <div class="cartao-texto">
+                    <strong>
+                      <span class="ordem-num">{{ stop.ordem }}.</span>
+                      <span class="mono">{{ stop.tag }}</span>
+                    </strong>
+                    <small>{{ stop.nome }}</small>
+                    @if (stop.concluido && stop.leituras) {
+                      <small class="faint">
+                        {{ stop.julgamento }} ·
+                        @for (kv of stop.leituras | keyvalue; track kv.key) {
+                          {{ kv.key }}: {{ kv.value }}
+                        }
+                      </small>
+                    }
+                  </div>
+                  @if (stop.concluido) {
+                    <ion-icon name="checkmark-circle-outline" class="ok-icon"></ion-icon>
+                  } @else {
+                    <ion-icon name="play-outline" class="play-icon"></ion-icon>
+                  }
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      @if (rota.status === 'concluida' || doneCount() === rota.stops.length) {
+        <div class="acoes">
+          <ion-button class="btn-primario btn-full" (click)="gerarRelatorio()">
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+            Gerar relatório / OS
+          </ion-button>
+        </div>
+      }
+    } @else {
+      <!-- FORMULÁRIO DE LEITURA DO PONTO -->
+      @if (stopAtual(); as stop) {
+        <p class="kicker">Ponto {{ stop.ordem }} de {{ rota.stops.length }}</p>
+        <h1 class="titulo">
+          <span class="mono">{{ stop.tag }}</span>
+        </h1>
+        <p class="subtitulo">{{ stop.nome }}</p>
+
+        <section class="bloco">
+          <h2 class="secao">Leituras</h2>
+
+          @for (t of tecnicas; track t.id) {
+            <div class="campo">
+              <label [for]="t.campoPrincipal">
+                {{ t.nome }}
+                @if (t.unidade) {
+                  ({{ t.unidade }})
+                }
+              </label>
+              <input
+                [id]="t.campoPrincipal"
+                type="text"
+                inputmode="decimal"
+                [placeholder]="t.descricao || t.campoPrincipal"
+                [(ngModel)]="leituras[t.campoPrincipal]"
+              />
+            </div>
+          }
+
+          <div class="campo">
+            <label>Julgamento</label>
+            <div class="chips">
+              <button type="button" class="chip" [class.selecionado]="julgamento === 'normal'" (click)="julgamento = 'normal'">Normal</button>
+              <button type="button" class="chip" [class.selecionado]="julgamento === 'atencao'" (click)="julgamento = 'atencao'">Atenção</button>
+              <button type="button" class="chip" [class.selecionado]="julgamento === 'critico'" (click)="julgamento = 'critico'">Crítico</button>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="obs">Observação</label>
+            <textarea id="obs" [(ngModel)]="observacao" placeholder="Opcional"></textarea>
+          </div>
+        </section>
+
+        <div class="acoes">
+          <ion-button class="btn-secundario" fill="outline" (click)="fecharStop()">
+            Cancelar
+          </ion-button>
+          <ion-button class="btn-primario" [disabled]="salvando" (click)="salvarLeitura()">
+            {{ salvando ? 'Salvando…' : 'Salvar ponto' }}
+          </ion-button>
+        </div>
+
+        <div class="acoes" style="margin-top: 8px">
+          <ion-button class="btn-secundario btn-full" fill="outline" [disabled]="salvando" (click)="salvarEProximo()">
+            Salvar e próximo
+            <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+          </ion-button>
+        </div>
+      }
+    }
+  </div>
+</ion-content>

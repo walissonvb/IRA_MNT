@@ -1,0 +1,45 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page">
+    <p class="kicker">Preditiva</p>
+    <h1 class="titulo">Monitoramento</h1>
+    <p class="subtitulo">
+      Técnicas disponíveis e equipamentos monitorados.
+      Use as rotas para inserir leituras de campo.
+    </p>
+
+    <section class="bloco">
+      <h2 class="secao">Técnicas preditivas</h2>
+      <div class="chips">
+        @for (t of tecnicas; track t.id) {
+          <span class="chip estatico">
+            <ion-icon [name]="t.icon"></ion-icon>
+            {{ t.nome }}
+          </span>
+        }
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2 class="secao">Equipamentos</h2>
+      <ul class="lista">
+        @for (m of maquinas; track m.id) {
+          <li>
+            <div class="cartao">
+              <div class="cartao-topo">
+                <div class="cartao-texto">
+                  <strong class="mono">{{ m.tag }}</strong>
+                  <small>{{ m.nome }} · {{ m.setor }}</small>
+                </div>
+                @if (m.critica) {
+                  <span class="badge critico">Crítica</span>
+                }
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</ion-content>

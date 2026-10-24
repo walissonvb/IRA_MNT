@@ -1,0 +1,31 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page">
+    <p class="kicker">Estoque</p>
+    <h1 class="titulo">Almoxarifado</h1>
+    <p class="subtitulo">Itens e níveis mínimos. Destacados os que estão abaixo do mínimo.</p>
+
+    <section class="bloco">
+      <ul class="lista">
+        @for (i of itens; track i.id) {
+          <li>
+            <div class="cartao" [class.alerta]="baixo(i)">
+              <div class="cartao-topo">
+                <div class="cartao-texto">
+                  <strong>{{ i.nome }}</strong>
+                  <small class="mono">{{ i.codigo }} · {{ i.categoria }}</small>
+                  <small>{{ i.localizacao }}</small>
+                </div>
+                <div class="qtd" [class.baixo]="baixo(i)">
+                  <span class="valor">{{ i.qtd }}</span>
+                  <span class="min">mín {{ i.qtdMinima }} {{ i.unidade }}</span>
+                </div>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</ion-content>

@@ -1,0 +1,373 @@
+/* Estilos compartilhados de página — importar nas páginas */
+
+@use './variables' as *;
+
+ion-content {
+  --background: var(--page-bg);
+}
+
+.page {
+  padding: 16px 16px 32px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.erro {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--crit-bg);
+  color: var(--crit);
+  font-size: 14px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.titulo {
+  margin: 6px 0 0;
+  font-size: 1.65rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.subtitulo {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 28rem;
+}
+
+.acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 20px 0 18px;
+}
+
+.btn-primario {
+  --background: var(--accent);
+  --background-hover: var(--accent-hover);
+  --background-activated: var(--accent-active);
+  --color: var(--accent-fg);
+  --border-radius: var(--radius-btn);
+  --box-shadow: none;
+  margin: 0;
+  font-weight: 600;
+  min-height: 48px;
+}
+
+.btn-secundario {
+  --background: var(--card-bg);
+  --color: var(--ink);
+  --border-color: var(--line);
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: var(--radius-btn);
+  --box-shadow: none;
+  margin: 0;
+  font-weight: 600;
+  min-height: 48px;
+}
+
+.btn-full {
+  grid-column: 1 / -1;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.stat {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  min-height: 88px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:active {
+    border-color: var(--accent);
+  }
+}
+
+.stat-label {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.stat-valor {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.bloco {
+  margin-bottom: 28px;
+}
+
+.secao {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vazio {
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+
+  strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ion-spinner {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+}
+
+.cartao {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:active {
+    border-color: var(--accent);
+  }
+}
+
+.cartao-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cartao-texto {
+  min-width: 0;
+
+  strong,
+  small {
+    display: block;
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  small {
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .faint {
+    opacity: 0.85;
+  }
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.badge {
+  flex-shrink: 0;
+  display: inline-block;
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: #e7eef1;
+  color: var(--accent);
+
+  &.em_execucao,
+  &.atencao,
+  &.media {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+
+  &.concluida,
+  &.normal,
+  &.baixa {
+    background: var(--ok-bg);
+    color: var(--ok);
+  }
+
+  &.critico,
+  &.critica,
+  &.alta {
+    background: var(--crit-bg);
+    color: var(--crit);
+  }
+}
+
+.barra {
+  margin-top: 12px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+  overflow: hidden;
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+}
+
+.progresso-txt {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Chips de seleção */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &.selecionado {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+  }
+}
+
+/* Formulário simples */
+.campo {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-btn);
+    background: var(--card-bg);
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+
+  textarea {
+    min-height: 88px;
+    resize: vertical;
+  }
+}
+
+.passo {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.passo-item {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+
+  &.ativo {
+    background: var(--accent);
+  }
+
+  &.feito {
+    background: var(--ok);
+  }
+}

@@ -1,0 +1,42 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true">
+  <div class="page">
+    <p class="kicker">Rotas</p>
+    <h1 class="titulo">Executar ronda</h1>
+    <p class="subtitulo">Selecione uma rota para abrir a lista de equipamentos.</p>
+
+    <div class="acoes">
+      <ion-button class="btn-primario btn-full" routerLink="/nova-rota">Nova rota</ion-button>
+    </div>
+
+    <section class="bloco">
+      @if (rotas.length === 0) {
+        <div class="vazio">
+          <strong>Nenhuma rota</strong>
+          <p>Crie a primeira rota preditiva.</p>
+        </div>
+      } @else {
+        <ul class="lista">
+          @for (r of rotas; track r.id) {
+            <li>
+              <button type="button" class="cartao" (click)="abrir(r.id)">
+                <div class="cartao-topo">
+                  <div class="cartao-texto">
+                    <strong>{{ r.nome }}</strong>
+                    <small>{{ r.equipeNome || 'Sem equipe' }} · {{ r.stops.length }} pontos</small>
+                  </div>
+                  <span class="badge" [class]="r.status">{{ rotulo(r.status) }}</span>
+                </div>
+                <div class="barra">
+                  <i [style.width.%]="progresso(r)"></i>
+                </div>
+                <small class="progresso-txt">{{ doneCount(r) }} de {{ r.stops.length }}</small>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+</ion-content>

@@ -1,0 +1,101 @@
+<ion-header [translucent]="true">
+  <app-header></app-header>
+
+  <ion-toolbar>
+    <ion-title>Máquinas e Peças</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <div class="page">
+    <p class="kicker">Cadastro</p>
+
+    <h1 class="titulo">Máquinas e peças</h1>
+
+    <p class="subtitulo">
+      Equipamentos da planta e peças associadas.
+    </p>
+
+    <section class="bloco">
+      <ul class="lista">
+
+        @for (m of maquinas; track m.id) {
+          <li>
+
+            <button
+              type="button"
+              class="cartao"
+              (click)="toggle(m.id)"
+            >
+              <div class="cartao-topo">
+
+                <div class="cartao-texto">
+                  <strong class="mono">{{ m.tag }}</strong>
+
+                  <small>{{ m.nome }}</small>
+
+                  <small>
+                    {{ m.setor }} · {{ m.local }}
+                  </small>
+                </div>
+
+                @if (m.critica) {
+                  <ion-icon
+                    name="warning-outline"
+                    class="warn-icon">
+                  </ion-icon>
+                }
+
+              </div>
+
+              @if (expandida === m.id) {
+
+                <div class="pecas">
+
+                  @if (m.pecas.length === 0) {
+
+                    <small class="faint">
+                      Sem peças cadastradas
+                    </small>
+
+                  } @else {
+
+                    @for (p of m.pecas; track p.id) {
+
+                      <div class="peca-row">
+
+                        <span>
+                          {{ p.nome }}
+                          <span class="mono faint">
+                            ({{ p.codigo }})
+                          </span>
+                        </span>
+
+                        <span
+                          [class.baixo]="p.qtdAtual < p.qtdMinima">
+                          {{ p.qtdAtual }}/{{ p.qtdMinima }}
+                          {{ p.unidade }}
+                        </span>
+
+                      </div>
+
+                    }
+
+                  }
+
+                </div>
+
+              }
+
+            </button>
+
+          </li>
+        }
+
+      </ul>
+    </section>
+
+  </div>
+
+</ion-content>
