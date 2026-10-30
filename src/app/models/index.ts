@@ -1,5 +1,5 @@
 /** Modelos do domínio Ronda PCM */
-
+import { Timestamp } from 'firebase/firestore';
 export type StatusRota = 'planejada' | 'em_execucao' | 'concluida';
 export type Julgamento = 'normal' | 'atencao' | 'critico';
 
@@ -71,16 +71,22 @@ export interface Rota {
 }
 
 export interface OrdemServico {
-  id: string;
-  numero: string;
+  protocolo?: string;
+  uid: string;
+  nomeUsuario: string;
+  setor?: string;
   maquinaId: string;
   maquinaTag: string;
   maquinaNome: string;
   descricao: string;
+  natureza: string;
   prioridade: 'baixa' | 'media' | 'alta' | 'critica';
   status: 'aberta' | 'em_andamento' | 'fechada';
-  abertaEm: string;
+  abertaEm: Timestamp;
   origemRotaId?: string;
+  atualizadoPor?: Timestamp;
+  dataFechamento?: Timestamp;
+  dataAbertura?: Timestamp; 
 }
 
 export interface ItemAlmoxarifado {

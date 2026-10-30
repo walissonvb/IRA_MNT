@@ -2,13 +2,16 @@ import { Component } from '@angular/core';
 import { IonContent, IonButton, IonSpinner, ViewWillEnter,  } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
 import { MockDataService } from '../services/mock-data-service';
-import { DashboardStat, DashboardAlerta, Rota,} from '../models/index';
+import { DashboardStat, DashboardAlerta, Rota, Maquina,} from '../models/index';
 import { AppHeaderComponent } from '../app-header/app-header.component';
+import { Observable } from 'rxjs';
+import { FirebaseService } from '../services/firebase.service';
 
 const STATUS_LABEL: Record<string, string> = {
   planejada: 'Planejada',
   em_execucao: 'Em execução',
-  concluida: 'Concluída',
+  concluida:
+   'Concluída',
 };
 
 const JULGAMENTO_LABEL: Record<string, string> = {
@@ -32,7 +35,8 @@ const JULGAMENTO_LABEL: Record<string, string> = {
   ],
 })
 export class HomePagePage implements ViewWillEnter {
-
+  maquina: Observable<Maquina[]> | undefined;
+  listaMaquinas: Maquina[] = [];
   carregando = true;
   erro = '';
   kicker = 'Planta Norte';
@@ -42,9 +46,21 @@ export class HomePagePage implements ViewWillEnter {
   alertas: DashboardAlerta[] = [];
 
   constructor(
+    private firebaseService: FirebaseService,
     private router: Router,
     private data: MockDataService,
-  ) {}
+  ) {
+    this.maquina = this.firebaseService.getMaquina();
+ this.maquina.subscribe({
+      next: (dados) => {
+        console.log('Máquinas do Firebase:', dados);
+        this.listaMaquinas = dados;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar máquinas:', err);
+      }
+    }); 
+}
 
   ionViewWillEnter(): void {
     void this.carregar();
@@ -55,6 +71,7 @@ export class HomePagePage implements ViewWillEnter {
     this.erro = '';
 
     try {
+      
       // Trocar por chamada Firebase quando disponível
       const d = this.data.getDashboard();
 

@@ -41,7 +41,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     { path: '/nova-rota.page', label: 'Nova rota', icon: 'git-network-outline' },
     { path: '/lista-rotas', label: 'Executar', icon: 'checkbox-outline' },
     { path: '/maquina.page', label: 'Máquinas', icon: 'construct-outline' },
-    { path: '/ordens', label: 'Ordens', icon: 'document-text-outline' },
+    { path: '/orden.page', label: 'Ordens', icon: 'document-text-outline' },
     { path: '/almoxerifado.page', label: 'Almox', icon: 'cube-outline' },
     { path: '/monitoramento.page', label: 'Monitor', icon: 'pulse-outline' },
   ];

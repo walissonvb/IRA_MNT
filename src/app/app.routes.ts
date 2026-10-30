@@ -34,4 +34,8 @@ export const routes: Routes = [
     path: 'nova-rota.page',
     loadComponent: () => import('./nova-rota.page/nova-rota.page.page').then( m => m.NovaRotaPagePage)
   },
+  {
+    path: 'orden.page',
+    loadComponent: () => import('./orden.page/orden.page.page').then( m => m.OrdenPagePage)
+  },
 ];

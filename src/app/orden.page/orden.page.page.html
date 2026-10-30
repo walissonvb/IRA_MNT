@@ -1,0 +1,114 @@
+<app-header></app-header>
+
+
+  <ion-content class="ion-padding">
+    <p class="kicker" id="saudacao">Bem-vindo</p>
+    <p class="erro" id="erro" hidden></p>
+    <p class="aviso" id="aviso" hidden></p>
+
+    <!-- Abrir Nova Ordem -->
+    <ion-card class="bloco-form">
+      <ion-card-header>
+        <ion-card-title>Abrir Nova Ordem de Serviço</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+
+        <!-- Etapa 1 -->
+        <div id="etapa-1">
+          <ion-item lines="none">
+            <ion-label>
+              <span class="campo-label">Tipo</span>
+              <strong id="tipo-usuario">empresa</strong>
+            </ion-label>
+          </ion-item>
+
+          <div id="bloco-setor">
+            <ion-item lines="none">
+              <ion-select id="setor" label="Setor" label-placement="stacked" interface="popover">
+                <ion-select-option value="PREPARAÇÃO DE MASSA">PREPARAÇÃO DE MASSA</ion-select-option>
+                <ion-select-option value="MAQUINA 7">MAQUINA 7</ion-select-option>
+                <ion-select-option value="ETA">ETA</ion-select-option>
+                <ion-select-option value="ETE">ETE</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div id="bloco-local" hidden>
+            <ion-item lines="none">
+              <ion-input id="local" label="Local" label-placement="stacked"></ion-input>
+            </ion-item>
+          </div>
+
+          <ion-item lines="none">
+            <ion-select id="natureza" label="Natureza do Chamado" label-placement="stacked" interface="popover">
+              <ion-select-option value="Defeito Mecânico">Defeito Mecânico</ion-select-option>
+              <ion-select-option value="Defeito Elétrico">Defeito Elétrico</ion-select-option>
+              <ion-select-option value="Outros">Outros</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-input id="ultima-atualizacao" label="Última Atualização" label-placement="stacked" readonly></ion-input>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-input id="data-abertura" label="Data de Abertura" label-placement="stacked" readonly></ion-input>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-input id="data-fechamento" label="Data de Fechamento" label-placement="stacked" type="time"></ion-input>
+          </ion-item>
+
+          <ion-button expand="block" id="btn-proxima">Próxima Etapa</ion-button>
+        </div>
+
+        <!-- Etapa 2 -->
+        <div id="etapa-2" hidden>
+          <ion-item lines="none">
+            <ion-select id="urgencia" label="Urgência" label-placement="stacked" interface="popover">
+              <ion-select-option value="emergencial">Emergencial (1): atendimento imediato</ion-select-option>
+              <ion-select-option value="urgente">Urgente (2): atendimento o mais breve possível</ion-select-option>
+              <ion-select-option value="Necessáriar">Necessária (3): atendimento em alguns dias</ion-select-option>
+              <ion-select-option value="Rotineira">Rotineira (4): atendimento em algumas semanas</ion-select-option>
+              <ion-select-option value="Prorrogável">Prorrogável (5): atendimento a longo prazo</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-textarea id="descricao" label="Observações" label-placement="stacked" rows="6" auto-grow="true"></ion-textarea>
+          </ion-item>
+
+          <div class="acoes ion-margin-top">
+            <ion-button expand="block" id="btn-abrir">Abrir Ordem de Serviço</ion-button>
+            <ion-button expand="block" fill="outline" id="btn-voltar-etapa">Voltar</ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Prestadores: atualizar ordem encontrada -->
+    <ion-card id="card-ordem-encontrada" class="bloco-form" hidden>
+      <ion-card-header>
+        <ion-card-title>Ordem Encontrada: <span id="protocolo-encontrado" class="mono"></span></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-select id="novo-status" label="Novo status" label-placement="stacked" interface="popover">
+            <ion-select-option value="Em Andamento">Em Andamento</ion-select-option>
+            <ion-select-option value="Pendente">Pendente</ion-select-option>
+            <ion-select-option value="Concluída">Concluída</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-button expand="block" id="btn-atualizar-status">Atualizar Status</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+
+<script type="module">
+  import "../../shared/app-shell.js";
+  import { initOrdens } from "./ordens.js";
+  const page = document.getElementById("page-ordens");
+  const abrir = () => initOrdens(page);
+  customElements.whenDefined("ion-page").then(abrir).catch(abrir);
+  page.addEventListener("ionViewWillEnter", abrir);
+</script>

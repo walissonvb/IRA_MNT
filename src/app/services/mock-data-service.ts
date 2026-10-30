@@ -1,4 +1,5 @@
 import { Service } from '@angular/core';
+import { Timestamp } from 'firebase/firestore';
 import {
   Maquina,
   Equipe,
@@ -100,15 +101,20 @@ export class MockDataService {
 
   private ordens: OrdemServico[] = [
     {
-      id: 'os1',
-      numero: 'OS-2026-0142',
+      uid: 'os1',
+      protocolo: 'OS-2026-0142',
       maquinaId: 'm2',
       maquinaTag: 'MOT-12',
       maquinaNome: 'Motor Elétrico 75kW',
       descricao: 'Ruído anormal no mancal dianteiro. Verificar rolamentos.',
       prioridade: 'alta',
       status: 'aberta',
-      abertaEm: '2026-10-21T14:20:00',
+      abertaEm: Timestamp.now(),
+      nomeUsuario: 'John Doe',
+      setor: 'Manutenção',
+      natureza: 'Mecânica',
+      dataAbertura: Timestamp.now(),
+      dataFechamento: Timestamp.now(),
     },
   ];
 
@@ -208,16 +214,19 @@ export class MockDataService {
 
   criarOrdemDeRota(rotaId: string, stop: RotaStop, descricao: string): OrdemServico {
     const os: OrdemServico = {
-      id: 'os' + Date.now(),
-      numero: `OS-2026-${String(this.ordens.length + 143).padStart(4, '0')}`,
+      uid: 'os' + Date.now(),
+      protocolo: `OS-2026-${String(this.ordens.length + 143).padStart(4, '0')}`,
       maquinaId: stop.maquinaId,
       maquinaTag: stop.tag,
       maquinaNome: stop.nome,
       descricao,
       prioridade: stop.julgamento === 'critico' ? 'critica' : 'alta',
       status: 'aberta',
-      abertaEm: new Date().toISOString(),
+      abertaEm: Timestamp.now(),
       origemRotaId: rotaId,
+      nomeUsuario: 'John Doe', // Example user name, replace with actual user name
+      setor: 'Setor Exemplo', // Example sector, replace with actual sector
+      natureza: 'Natureza Exemplo', // Example nature, replace with actual nature
     };
     this.ordens = [os, ...this.ordens];
     return os;
