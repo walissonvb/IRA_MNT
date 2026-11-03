@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
 import {
   Auth,
   authState,
@@ -26,12 +26,14 @@ orderBy,
 limit
 } from '@angular/fire/firestore';
 
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { switchMap, tap, catchError } from 'rxjs/operators';
 
 import { OrdemServico as Os } from '../models/index';
 
 import { Maquina } from '../models/index';
 
+import { docData } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -40,9 +42,9 @@ import { Maquina } from '../models/index';
 export class FirebaseService {
 
 
-    private firestore = inject(Firestore);
-
-   private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private auth = inject(Auth);
+  private injector = inject(Injector);
 
 
 
@@ -64,21 +66,36 @@ export class FirebaseService {
 
 }
 
-getMaquina():Observable<Maquina[]>{
+getMaquina(): Observable<Maquina[]> {
+  return authState(this.auth).pipe(
+    switchMap((user) => {
+      console.log('[getMaquina] auth user:', user?.uid ?? null);
+      if (!user) return of([] as Maquina[]);
 
-const ref=collection(this.firestore,'maquina');
+      return new Observable<Maquina[]>((subscriber) => {
+        // subscribe acontece AINDA dentro do injection context
+        const teardown = runInInjectionContext(this.injector, () => {
+          const ref = collection(this.firestore, 'maquina');
+          console.log('[getMaquina] coleção: maquina | firestore ok');
 
-const q=query(
-ref,
-orderBy('local'),
-limit(10)
-);
+          const sub = (collectionData(ref, { idField: 'id' }) as Observable<Maquina[]>)
+            .pipe(
+              tap((docs) => console.log('[getMaquina] docs:', docs.length, docs)),
+              catchError((err) => {
+                console.error('[getMaquina] erro:', err);
+                return of([] as Maquina[]);
+              }),
+              
+            )
+            .subscribe(subscriber);
 
-return collectionData(
-q,
-{idField:'id'}
-) as Observable<Maquina[]>;
+          return () => sub.unsubscribe();
+        });
 
+        return teardown;
+      });
+    }),
+  );
 }
 
 listarUltimasOrdens():Observable<Os[]>{

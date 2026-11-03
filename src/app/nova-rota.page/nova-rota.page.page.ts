@@ -75,9 +75,6 @@ export class NovaRotaPagePage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.tecnicas = this.data.getTecnicas();
-    this.equipes = this.data.getEquipes();
-    this.maquinas = this.data.getMaquinas();
   }
 
   toggleTecnica(id: string): void {

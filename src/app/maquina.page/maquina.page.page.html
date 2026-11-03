@@ -1,100 +1,210 @@
-<ion-header [translucent]="true">
-  <app-header></app-header>
+<app-header></app-header>
 
-  <ion-toolbar>
-    <ion-title>Máquinas e Peças</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
+<ion-content>
 
   <div class="page">
-    <p class="kicker">Cadastro</p>
 
-    <h1 class="titulo">Máquinas e peças</h1>
+    <h1>Máquinas</h1>
 
-    <p class="subtitulo">
-      Equipamentos da planta e peças associadas.
-    </p>
+    <ul class="lista">
 
-    <section class="bloco">
-      <ul class="lista">
+      @for (m of maquinas.slice(0,5); track m.id) {
 
-        @for (m of maquinas; track m.id) {
-          <li>
+      <li>
 
-            <button
-              type="button"
-              class="cartao"
-              (click)="toggle(m.id)"
-            >
-              <div class="cartao-topo">
+        <button class="cartao" (click)="toggle(m.id)">
 
-                <div class="cartao-texto">
-                  <strong class="mono">{{ m.tag }}</strong>
+          <div class="cartao-topo">
 
-                  <small>{{ m.nome }}</small>
+            <div class="cartao-texto">
 
-                  <small>
-                    {{ m.setor }} · {{ m.local }}
-                  </small>
-                </div>
+              <strong>
+                {{ m.nome }}
+              </strong>
 
-                @if (m.critica) {
-                  <ion-icon
-                    name="warning-outline"
-                    class="warn-icon">
-                  </ion-icon>
+              <small>
+                {{ m.setor }}
+              </small>
+
+            </div>
+
+            <ion-icon [name]="expandida === m.id ? 'chevron-up-outline' : 'chevron-down-outline'">
+            </ion-icon>
+
+          </div>
+
+        </button>
+
+        @if (expandida === m.id) {
+
+        <ion-card class="machine-detail-card">
+
+          <ion-card-header>
+
+            <ion-card-title>
+
+              {{ m.maquina || m.nome || 'Sem nome' }}
+
+              @if (m.status) {
+              <ion-badge [color]="getStatusColor(m.status)">
+                {{ m.status | uppercase }}
+              </ion-badge>
+              }
+
+            </ion-card-title>
+
+          </ion-card-header>
+
+          <div class="ion-padding">
+
+            <div class="field-box">
+              <strong>Descrição:</strong>
+              <p>{{ m.descricao || '—' }}</p>
+            </div>
+
+            <div class="field-box">
+              <strong>Local:</strong>
+              <p>{{ m.local || '—' }}</p>
+            </div>
+
+            <div class="field-box">
+              <strong>Peça:</strong>
+              <p>{{ m.pecas?.join(', ') || '—' }}</p>
+            </div>
+
+            <ion-grid>
+
+              <ion-row>
+
+                <ion-col size="6">
+                  <div class="field-box">
+                    <small>Vibração</small><br>
+                    <strong>
+                      {{ m.vibracaoGlobal ?? '—' }} mm/s
+                    </strong>
+                  </div>
+                </ion-col>
+
+                <ion-col size="6">
+                  <div class="field-box">
+                    <small>Temperatura</small><br>
+                    <strong>
+                      {{ m.temperatura ?? '—' }} °C
+                    </strong>
+                  </div>
+                </ion-col>
+
+                <ion-col size="6">
+                  <div class="field-box">
+                    <small>Lubrificação</small><br>
+                    <strong>
+                      {{ m.lubrificacao || '—' }}
+                    </strong>
+                  </div>
+                </ion-col>
+
+                <ion-col size="6">
+                  <div class="field-box">
+                    <small>Saúde</small><br>
+                    <strong>
+                      {{ m.indiceSaude ?? '—' }}%
+                    </strong>
+                  </div>
+                </ion-col>
+
+              </ion-row>
+
+            </ion-grid>
+
+            @if (m.pendencias?.length) {
+
+            <div class="field-box">
+
+              <strong>Pendências:</strong>
+
+              <div class="chips-container">
+
+                @for (p of m.pendencias; track $index) {
+
+                <ion-chip color="danger" outline>
+                  {{ p }}
+                </ion-chip>
+
                 }
 
               </div>
 
-              @if (expandida === m.id) {
+            </div>
 
-                <div class="pecas">
+            }
 
-                  @if (m.pecas.length === 0) {
+            <div class="field-box">
 
-                    <small class="faint">
-                      Sem peças cadastradas
-                    </small>
+              <strong>Última medição:</strong>
 
-                  } @else {
+              @if (m.ultimaMedicao) {
+              {{ m.ultimaMedicao | date:'dd/MM/yyyy HH:mm' }}
+              } @else {
+              —
+              }
 
-                    @for (p of m.pecas; track p.id) {
+            </div>
 
-                      <div class="peca-row">
+            <div class="field-box">
 
-                        <span>
-                          {{ p.nome }}
-                          <span class="mono faint">
-                            ({{ p.codigo }})
-                          </span>
-                        </span>
+              <strong>Próxima manutenção:</strong>
 
-                        <span
-                          [class.baixo]="p.qtdAtual < p.qtdMinima">
-                          {{ p.qtdAtual }}/{{ p.qtdMinima }}
-                          {{ p.unidade }}
-                        </span>
+              @if (m.proximaManutencao) {
 
-                      </div>
+              <span [class.text-danger]="isOverdue(m.proximaManutencao)">
 
-                    }
+                {{ m.proximaManutencao | date:'dd/MM/yyyy' }}
 
-                  }
+              </span>
 
-                </div>
+              } @else {
+
+              <span>Sem agendamento</span>
 
               }
 
-            </button>
+            </div>
 
-          </li>
+          </div>
+
+          <ion-row class="ion-padding">
+
+            <ion-col>
+
+              <ion-button expand="block" size="small" (click)="editar(m)">
+
+                Editar
+
+              </ion-button>
+
+            </ion-col>
+
+            <ion-col>
+
+              <ion-button expand="block" size="small" color="danger" (click)="excluir(m.id!)">
+
+                Excluir
+
+              </ion-button>
+
+            </ion-col>
+
+          </ion-row>
+
+        </ion-card>
+
         }
 
-      </ul>
-    </section>
+      </li>
+
+      }
+
+    </ul>
 
   </div>
 

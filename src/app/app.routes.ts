@@ -23,10 +23,6 @@ export const routes: Routes = [
     loadComponent: () => import('./lista-rotas/lista-rotas.page').then( m => m.ListaRotasPage)
   },
   {
-    path: 'maquina.page',
-    loadComponent: () => import('./maquina.page/maquina.page.page').then( m => m.MaquinaPagePage)
-  },
-  {
     path: 'monitoramento.page',
     loadComponent: () => import('./monitoramento.page/monitoramento.page.page').then( m => m.MonitoramentoPagePage)
   },
@@ -37,5 +33,9 @@ export const routes: Routes = [
   {
     path: 'orden.page',
     loadComponent: () => import('./orden.page/orden.page.page').then( m => m.OrdenPagePage)
+  },
+  {
+    path: 'maquina.page',
+    loadComponent: () => import('./maquina.page/maquina.page.page').then( m => m.MaquinaPagePage)
   },
 ];

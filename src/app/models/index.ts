@@ -34,9 +34,31 @@ export interface Maquina {
   tag: string;
   nome: string;
   setor: string;
-  local: string;
   pecas: Peca[];
-  critica: boolean;
+  maquina?: string;
+  descricao?: string;
+  local?: string;
+
+  vibracaoGlobal?: number;
+  temperatura?: number;
+  lubrificacao?: string;
+
+  anomalia?: string;
+  pendencias?: string[];
+
+  indiceSaude?: number;
+  ultimaMedicao?: Date | null;
+  proximaManutencao?: Date | null;
+
+  horasOperacao?: number;
+  status?: 'normal' | 'alerta' | 'critico';
+}
+
+export interface StatCard {
+  label: string;
+  value: number | string;
+  link: string;
+  hint?: string;
 }
 
 export interface Equipe {
@@ -89,6 +111,27 @@ export interface OrdemServico {
   dataAbertura?: Timestamp; 
 }
 
+export interface Plataforma {
+  id?: string;
+  maquina?: string;
+  descricao?: string;
+  local?: string;
+  peca?: string;
+
+  vibracaoGlobal?: number;
+  temperatura?: number;
+  lubrificacao?: string;
+
+  anomalia?: string;
+  pendencias?: string[];
+
+  indiceSaude?: number;
+  ultimaMedicao?: Date | null;
+  proximaManutencao?: Date | null;
+
+  horasOperacao?: number;
+  status?: 'normal' | 'alerta' | 'critico';
+}
 export interface ItemAlmoxarifado {
   id: string;
   codigo: string;

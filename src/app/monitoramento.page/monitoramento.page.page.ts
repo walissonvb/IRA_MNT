@@ -35,7 +35,5 @@ export class MonitoramentoPagePage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.tecnicas = this.data.getTecnicas();
-    this.maquinas = this.data.getMaquinas();
   }
 }

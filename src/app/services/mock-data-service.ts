@@ -33,39 +33,6 @@ export class MockDataService {
     { id: 'eq3', nome: 'Equipe C — Preditiva', membros: ['Mariana Souza', 'Rafael Dias'] },
   ];
 
-  private maquinas: Maquina[] = [
-    {
-      id: 'm1', tag: 'BOM-01', nome: 'Bomba Centrífuga 01', setor: 'Utilidades', local: 'Casa de bombas', critica: true,
-      pecas: [
-        { id: 'p1', nome: 'Selo mecânico', codigo: 'SM-BOM-01', qtdMinima: 1, qtdAtual: 2, unidade: 'un' },
-        { id: 'p2', nome: 'Rolamento 6309', codigo: 'ROL-6309', qtdMinima: 2, qtdAtual: 1, unidade: 'un' },
-      ],
-    },
-    {
-      id: 'm2', tag: 'MOT-12', nome: 'Motor Elétrico 75kW', setor: 'Produção', local: 'Linha 2', critica: true,
-      pecas: [
-        { id: 'p3', nome: 'Ventilador', codigo: 'VEN-MOT-75', qtdMinima: 1, qtdAtual: 0, unidade: 'un' },
-      ],
-    },
-    {
-      id: 'm3', tag: 'RED-03', nome: 'Redutor de velocidade', setor: 'Produção', local: 'Linha 1', critica: false,
-      pecas: [],
-    },
-    {
-      id: 'm4', tag: 'COM-02', nome: 'Compressor de ar', setor: 'Utilidades', local: 'Casa de máquinas', critica: true,
-      pecas: [
-        { id: 'p4', nome: 'Filtro de ar', codigo: 'FIL-COM-02', qtdMinima: 2, qtdAtual: 3, unidade: 'un' },
-      ],
-    },
-    {
-      id: 'm5', tag: 'VEN-07', nome: 'Ventilador industrial', setor: 'Exaustão', local: 'Cobertura', critica: false,
-      pecas: [],
-    },
-    {
-      id: 'm6', tag: 'BOM-04', nome: 'Bomba dosadora', setor: 'Química', local: 'Área química', critica: false,
-      pecas: [],
-    },
-  ];
 
   private rotas: Rota[] = [
     {
@@ -128,13 +95,6 @@ export class MockDataService {
 
   // ——— Getters (simulam leitura Firebase) ———
 
-  getMaquinas(): Maquina[] {
-    return [...this.maquinas];
-  }
-
-  getMaquina(id: string): Maquina | undefined {
-    return this.maquinas.find((m) => m.id === id);
-  }
 
   getEquipes(): Equipe[] {
     return [...this.equipes];
@@ -161,22 +121,6 @@ export class MockDataService {
     return [...this.almox];
   }
 
-  getDashboard(): DashboardData {
-    const openRoutes = this.rotas.filter((r) => r.status !== 'concluida').length;
-    const openOrders = this.ordens.filter((o) => o.status !== 'fechada').length;
-    const lowStock = this.almox.filter((i) => i.qtd < i.qtdMinima).length;
-    const alerts = this.buildAlerts();
-
-    return {
-      todayLabel: this.hojeLabel(),
-      machineCount: this.maquinas.length,
-      openRoutes,
-      openOrders,
-      lowStock,
-      routes: this.getRotas().filter((r) => r.status !== 'concluida'),
-      alerts,
-    };
-  }
 
   // ——— Mutations (simulam escrita Firebase) ———
 
