@@ -67,37 +67,25 @@ export class FirebaseService {
 }
 
 getMaquina(): Observable<Maquina[]> {
-  return authState(this.auth).pipe(
-    switchMap((user) => {
-      console.log('[getMaquina] auth user:', user?.uid ?? null);
-      if (!user) return of([] as Maquina[]);
 
-      return new Observable<Maquina[]>((subscriber) => {
-        // subscribe acontece AINDA dentro do injection context
-        const teardown = runInInjectionContext(this.injector, () => {
-          const ref = collection(this.firestore, 'maquina');
-          console.log('[getMaquina] coleção: maquina | firestore ok');
+  const ref = collection(this.firestore, 'maquina');
 
-          const sub = (collectionData(ref, { idField: 'id' }) as Observable<Maquina[]>)
-            .pipe(
-              tap((docs) => console.log('[getMaquina] docs:', docs.length, docs)),
-              catchError((err) => {
-                console.error('[getMaquina] erro:', err);
-                return of([] as Maquina[]);
-              }),
-              
-            )
-            .subscribe(subscriber);
+  return (collectionData(
+    ref,
+    { idField: 'id' }
+  ) as Observable<Maquina[]>).pipe(
 
-          return () => sub.unsubscribe();
-        });
+    tap((docs) =>
+      console.log('[getMaquina] docs:', docs.length)
+    ),
 
-        return teardown;
-      });
-    }),
+    catchError((err) => {
+      console.error('[getMaquina] erro:', err);
+      return of([] as Maquina[]);
+    })
+
   );
 }
-
 listarUltimasOrdens():Observable<Os[]>{
 
 const ref=collection(this.firestore,'ordens_servico');
