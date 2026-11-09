@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { IonContent, IonButton, IonSpinner } from '@ionic/angular';
+import { IonContent, IonButton, IonSpinner, IonCard } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { FirebaseService } from '../services/firebase.service';
 import { DashboardAlerta, Rota, Maquina, StatCard } from '../models/index';
 import { AppHeaderComponent } from '../app-header/app-header.component';
+import { CarrocelComponent } from '../carrocel/carrocel.component';
 
 const STATUS_LABEL: Record<string, string> = {
   planejada: 'Planejada',
@@ -24,7 +25,7 @@ const JULGAMENTO_LABEL: Record<string, string> = {
   templateUrl: './home.page.page.html',
   styleUrls: ['./home.page.page.scss'],
   standalone: true,
-  imports: [IonContent, IonButton, IonSpinner, RouterLink, AppHeaderComponent],
+  imports: [IonCard, IonContent, IonButton, IonSpinner, RouterLink, AppHeaderComponent, CarrocelComponent],
 })
 export class HomePagePage implements OnInit, OnDestroy {
   carregando = true;
@@ -40,13 +41,13 @@ export class HomePagePage implements OnInit, OnDestroy {
     { label: 'Críticas', value: '—', link: '//maquina.page' },
     { label: 'Com local', value: '—', link: '//maquina.page' },
     { label: 'Setores', value: '—', link: '//maquina.page' },
+    
   ];
 
   private sub?: Subscription;
   private carouselTimer?: ReturnType<typeof setInterval>;
   private firebaseService = inject(FirebaseService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.carregar();
@@ -54,14 +55,12 @@ export class HomePagePage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
-    this.pararCarousel();
   }
 
   carregar(): void {
     this.carregando = true;
     this.erro = '';
     this.sub?.unsubscribe();
-    this.pararCarousel();
 
     this.sub = this.firebaseService.getMaquina().subscribe({
       next: (maquinas) => {
@@ -75,55 +74,24 @@ export class HomePagePage implements OnInit, OnDestroy {
         this.kicker = `Planta Norte · ${new Date().toLocaleDateString('pt-BR')}`;
         this.stats = [
           { label: 'Máquinas', value: total, link: '//maquina.page', hint: 'Total cadastrado' },
-          { label: 'Críticas', value: criticas, link: '//maquina.page', hint: 'Prioridade alta' },
-          { label: 'Com local', value: comLocal, link: '//maquina.page', hint: 'Local preenchido' },
+          { label: 'Máquinas Críticas', value: criticas, link: '//maquina.page', hint: 'Prioridade alta' },
+          { label: 'Local Máquinas', value: comLocal, link: '//maquina.page', hint: 'Local preenchido' },
           { label: 'Setores', value: setores, link: '//maquina.page', hint: 'Setores distintos' },
+
         ];
 
         this.statsCarregados = true;
         this.carregando = false;
         this.slideAtivo = 0;
-        this.iniciarCarousel();
-        this.cdr.markForCheck();
       },
       error: (err) => {
         this.erro = err instanceof Error ? err.message : 'Falha ao carregar.';
         this.carregando = false;
         this.statsCarregados = true;
-        this.cdr.markForCheck();
       },
     });
   }
 
-  iniciarCarousel(): void {
-    this.pararCarousel();
-    if (this.stats.length <= 1) return;
-    this.carouselTimer = setInterval(() => {
-      this.slideAtivo = (this.slideAtivo + 1) % this.stats.length;
-      this.cdr.markForCheck();
-    }, 5000);
-  }
-
-
-pararCarousel(): void {
-  if (this.carouselTimer) {
-    clearInterval(this.carouselTimer);
-    this.carouselTimer = undefined;
-  }
-}
-
-pausarCarousel(): void {
-  this.pararCarousel();
-}
-
-retomarCarousel(): void {
-  this.iniciarCarousel();
-}
-
-irParaSlide(index: number): void {
-  this.slideAtivo = index;
-  this.iniciarCarousel(); // reinicia a contagem de 5 s
-}
   progresso(rota: Rota): number {
     const total = rota.stops?.length ?? 0;
     if (!total) return 0;

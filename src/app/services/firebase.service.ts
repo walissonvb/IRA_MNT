@@ -1,4 +1,4 @@
-import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import {
   Auth,
   authState,
@@ -8,32 +8,33 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
-  
+
 } from '@angular/fire/auth';
 
 import {
-Firestore,
-collection,
-collectionData,
-query,
-where,
-doc,
-getDoc,
-updateDoc,
-addDoc,
-serverTimestamp,
-orderBy,
-limit
+  Firestore,
+  collection,
+  collectionData,
+  query,
+  where,
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+  orderBy,
+  limit,
+  deleteDoc
 } from '@angular/fire/firestore';
 
 import { Observable, of } from 'rxjs';
-import { switchMap, tap, catchError } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 
 import { OrdemServico as Os } from '../models/index';
 
-import { Maquina } from '../models/index';
+import { Maquina, TecnicaPreditiva, Equipe, RotaStop } from '../models/index';
 
-import { docData } from '@angular/fire/firestore';
+import { Rota } from '../models/index';
 
 @Injectable({
   providedIn: 'root'
@@ -46,203 +47,238 @@ export class FirebaseService {
   private auth = inject(Auth);
   private injector = inject(Injector);
 
-
-
   user$ = authState(this.auth);
 
-  listarMinhasOS(uid:string){
+  getTecnicas(): Observable<TecnicaPreditiva[]> {
 
-  const ref = collection(this.firestore,'ordens_servico');
+    const ref = collection(
+      this.firestore,
+      'tecnicapreditiva'
+    );
 
-  const q = query(
+    return collectionData(
       ref,
-      where('uid','==',uid)
+      { idField: 'id' }
+    ) as Observable<TecnicaPreditiva[]>;
+
+  }
+
+  async salvarRota(
+    rota: Partial<Rota>
+  ): Promise<string> {
+
+    const ref = collection(
+      this.firestore,
+      'rota'
+    );
+
+    const docRef = await addDoc(
+      ref,
+      {
+        ...rota,
+        criadoEm: serverTimestamp(),
+        status: 'planejada'
+      }
+    );
+
+    return docRef.id;
+  }
+
+  getEquipes(): Observable<Equipe[]> {
+
+    const ref = collection(
+      this.firestore,
+      'equipe'
+    );
+
+    return collectionData(
+      ref,
+      { idField: 'id' }
+    ) as Observable<Equipe[]>;
+
+  }
+
+  async getRota(id: string): Promise<Rota | null> {
+
+    const ref = doc(
+      this.firestore,
+      'rota',
+      id
+    );
+
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      return null;
+    }
+
+    return {
+      ...(snap.data() as Rota),
+      id: snap.id
+    };
+
+  }
+
+getRotas(): Observable<Rota[]> {
+
+  const ref = collection(
+    this.firestore,
+    'rota'
   );
 
   return collectionData(
-      q,
-      { idField:'protocolo' }
-  ) as Observable<Os[]>;
-
-}
-
-getMaquina(): Observable<Maquina[]> {
-
-  const ref = collection(this.firestore, 'maquina');
-
-  return (collectionData(
     ref,
     { idField: 'id' }
-  ) as Observable<Maquina[]>).pipe(
-
-    tap((docs) =>
-      console.log('[getMaquina] docs:', docs.length)
-    ),
-
-    catchError((err) => {
-      console.error('[getMaquina] erro:', err);
-      return of([] as Maquina[]);
-    })
-
-  );
-}
-listarUltimasOrdens():Observable<Os[]>{
-
-const ref=collection(this.firestore,'ordens_servico');
-
-const q=query(
-ref,
-orderBy('dataAbertura','desc'),
-limit(10)
-);
-
-return collectionData(
-q,
-{idField:'protocolo'}
-) as Observable<Os[]>;
+  ) as Observable<Rota[]>;
 
 }
 
-async buscarPorProtocolo(protocolo:string){
+  listarMinhasOS(uid: string) {
 
-const ref=doc(
-this.firestore,
-'ordens_servico',
-protocolo
-);
+    const ref = collection(this.firestore, 'ordens_servico');
 
-const snap=await getDoc(ref);
+    const q = query(
+      ref,
+      where('uid', '==', uid)
+    );
 
-if(!snap.exists()) return null;
+    return collectionData(
+      q,
+      { idField: 'protocolo' }
+    ) as Observable<Os[]>;
 
-return{
+  }
 
-protocolo:snap.id,
+  getMaquina(): Observable<Maquina[]> {
 
-...(snap.data() as Os)
+    const ref = collection(this.firestore, 'maquina');
 
-};
+    return (collectionData(
+      ref,
+      { idField: 'id' }
+    ) as Observable<Maquina[]>).pipe(
 
-}
+      tap((docs) =>
+        console.log('[getMaquina] docs:', docs.length)
+      ),
 
-async criarOS(os: Os): Promise<{ protocolo: string; mensagem: string }> {
+      catchError((err) => {
+        console.error('[getMaquina] erro:', err);
+        return of([] as Maquina[]);
+      })
 
-  const dados = {
-    ...os,
-    status: 'pendente',
-    dataAbertura: serverTimestamp()
-  };
+    );
+  }
+  listarUltimasOrdens(): Observable<Os[]> {
 
-  const ref = collection(this.firestore, 'ordens_servico');
+    const ref = collection(this.firestore, 'ordens_servico');
 
-  const docRef = await addDoc(ref, dados);
+    const q = query(
+      ref,
+      orderBy('dataAbertura', 'desc'),
+      limit(10)
+    );
 
-  os.protocolo = docRef.id;
+    return collectionData(
+      q,
+      { idField: 'protocolo' }
+    ) as Observable<Os[]>;
 
-  const mensagem = this.gerarMensagem(os);
+  }
 
-  await this.salvarMensagem(mensagem, docRef.id);
+  async buscarPorProtocolo(protocolo: string) {
 
-  return {
-    protocolo: docRef.id,
-    mensagem
-  };
-}
-async atualizarStatus(
+    const ref = doc(
+      this.firestore,
+      'ordens_servico',
+      protocolo
+    );
 
-protocolo:string,
+    const snap = await getDoc(ref);
 
-status:'pendente'|'em andamento'|'concluída',
+    if (!snap.exists()) return null;
 
-uid:string
+    return {
 
-){
+      protocolo: snap.id,
 
-const ref=doc(
+      ...(snap.data() as Os)
 
-this.firestore,
+    };
 
-'ordens_servico',
+  }
 
-protocolo
-
-);
-
-await updateDoc(ref,{
-
-status,
-
-ultimaAtualizacao:serverTimestamp(),
-
-atualizadoPor:uid
-
-});
-
-}
-
-private gerarMensagem(os: Os) {
-  const horaInicio = os.dataAbertura ? os.dataAbertura.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-  const horaFim = os.dataFechamento || '';
-  const ultimaAtualizacao = os.atualizadoPor ? os.atualizadoPor.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-
-  return `🚨 NOVA ORDEM DE SERVIÇO
-
-📋 Protocolo: ${os.protocolo}
-
-📍 Local:
-${os.setor}
-
-⚙ Natureza:
-${os.natureza}
-
-🚨 Urgência:
-${os.prioridade}
-
-📝 ${os.descricao}
-
-Data de Abertura:
-${ultimaAtualizacao}
-
-Hora de Início:
-${horaInicio}
-
-Hora de Término:
-${horaFim}`;
-}
-
-private async salvarMensagem(
-
-mensagem:string,
-
-protocolo:string
-
-){
-
-const ref=collection(
-
-this.firestore,
-
-'messages'
-
-);
-
-await addDoc(ref,{
-
-protocolo,
-
-body:mensagem,
-
-to:'5531999184578',
-
-enviado:false,
-
-dataCriacao:serverTimestamp()
-
-});
-
-}
+  async criarOS(os: Os) {
 
 
+  }
+  async atualizarStatus(
+
+    protocolo: string,
+
+    status: 'pendente' | 'em andamento' | 'concluída',
+
+    uid: string
+
+  ) {
+
+    const ref = doc(
+
+      this.firestore,
+
+      'ordens_servico',
+
+      protocolo
+
+    );
+
+    await updateDoc(ref, {
+
+      status,
+
+      ultimaAtualizacao: serverTimestamp(),
+
+      atualizadoPor: uid
+
+    });
+
+  }
+
+  private gerarMensagem() {
+
+  }
+
+  private async salvarMensagem(
+
+    mensagem: string,
+
+    protocolo: string
+
+  ) {
+
+    const ref = collection(
+
+      this.firestore,
+
+      'messages'
+
+    );
+
+    await addDoc(ref, {
+
+      protocolo,
+
+      body: mensagem,
+
+      to: '5531999184578',
+
+      enviado: false,
+
+      dataCriacao: serverTimestamp()
+
+    });
+
+  }
 
   login(email: string, password: string) {
     return signInWithEmailAndPassword(

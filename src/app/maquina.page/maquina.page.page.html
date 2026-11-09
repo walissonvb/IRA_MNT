@@ -1,5 +1,6 @@
 <app-header></app-header>
-
+<app-carrocel [stats]="stats" [carregando]="carregando" [statsCarregados]="statsCarregados">
+</app-carrocel>
 <ion-content>
 
   <div class="page">
@@ -37,168 +38,12 @@
 
         @if (expandida === m.id) {
 
-        <ion-card class="machine-detail-card">
-
-          <ion-card-header>
-
-            <ion-card-title>
-
-              {{ m.maquina || m.nome || 'Sem nome' }}
-
-              @if (m.status) {
-              <ion-badge [color]="getStatusColor(m.status)">
-                {{ m.status | uppercase }}
-              </ion-badge>
-              }
-
-            </ion-card-title>
-
-          </ion-card-header>
-
-          <div class="ion-padding">
-
-            <div class="field-box">
-              <strong>Descrição:</strong>
-              <p>{{ m.descricao || '—' }}</p>
-            </div>
-
-            <div class="field-box">
-              <strong>Local:</strong>
-              <p>{{ m.local || '—' }}</p>
-            </div>
-
-            <div class="field-box">
-              <strong>Peça:</strong>
-              <p>{{ m.pecas?.join(', ') || '—' }}</p>
-            </div>
-
-            <ion-grid>
-
-              <ion-row>
-
-                <ion-col size="6">
-                  <div class="field-box">
-                    <small>Vibração</small><br>
-                    <strong>
-                      {{ m.vibracaoGlobal ?? '—' }} mm/s
-                    </strong>
-                  </div>
-                </ion-col>
-
-                <ion-col size="6">
-                  <div class="field-box">
-                    <small>Temperatura</small><br>
-                    <strong>
-                      {{ m.temperatura ?? '—' }} °C
-                    </strong>
-                  </div>
-                </ion-col>
-
-                <ion-col size="6">
-                  <div class="field-box">
-                    <small>Lubrificação</small><br>
-                    <strong>
-                      {{ m.lubrificacao || '—' }}
-                    </strong>
-                  </div>
-                </ion-col>
-
-                <ion-col size="6">
-                  <div class="field-box">
-                    <small>Saúde</small><br>
-                    <strong>
-                      {{ m.indiceSaude ?? '—' }}%
-                    </strong>
-                  </div>
-                </ion-col>
-
-              </ion-row>
-
-            </ion-grid>
-
-            @if (m.pendencias?.length) {
-
-            <div class="field-box">
-
-              <strong>Pendências:</strong>
-
-              <div class="chips-container">
-
-                @for (p of m.pendencias; track $index) {
-
-                <ion-chip color="danger" outline>
-                  {{ p }}
-                </ion-chip>
-
-                }
-
-              </div>
-
-            </div>
-
-            }
-
-            <div class="field-box">
-
-              <strong>Última medição:</strong>
-
-              @if (m.ultimaMedicao) {
-              {{ m.ultimaMedicao | date:'dd/MM/yyyy HH:mm' }}
-              } @else {
-              —
-              }
-
-            </div>
-
-            <div class="field-box">
-
-              <strong>Próxima manutenção:</strong>
-
-              @if (m.proximaManutencao) {
-
-              <span [class.text-danger]="isOverdue(m.proximaManutencao)">
-
-                {{ m.proximaManutencao | date:'dd/MM/yyyy' }}
-
-              </span>
-
-              } @else {
-
-              <span>Sem agendamento</span>
-
-              }
-
-            </div>
-
-          </div>
-
-          <ion-row class="ion-padding">
-
-            <ion-col>
-
-              <ion-button expand="block" size="small" (click)="editar(m)">
-
-                Editar
-
-              </ion-button>
-
-            </ion-col>
-
-            <ion-col>
-
-              <ion-button expand="block" size="small" color="danger" (click)="excluir(m.id!)">
-
-                Excluir
-
-              </ion-button>
-
-            </ion-col>
-
-          </ion-row>
-
-        </ion-card>
-
-        }
+<app-machine-card
+  [maquina]="m"
+  modo="consulta"
+  (editar)="editar($event)"
+  (excluir)="excluir($event)">
+</app-machine-card>        }
 
       </li>
 

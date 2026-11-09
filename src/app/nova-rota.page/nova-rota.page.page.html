@@ -70,48 +70,59 @@
     }
 
     <!-- PASSO 3: Equipamentos em ordem -->
-    @if (passo === 3) {
-      <section class="bloco">
-        <h2 class="secao">3. Equipamentos (ordem da ronda)</h2>
-        <p class="hint">Toque para incluir. A ordem de toque define a sequência. Use as setas para reordenar.</p>
+@if (passo === 3) {
 
-        @if (ordem.length) {
-          <div class="ordem-preview">
-            <strong>Sequência atual</strong>
-            <ol>
-              @for (m of ordem; track m.id; let i = $index) {
-                <li>
-                  <span class="mono">{{ m.tag }}</span> — {{ m.nome }}
-                  <span class="mover">
-                    <button type="button" (click)="mover(i, -1)" [disabled]="i === 0" aria-label="Subir">↑</button>
-                    <button type="button" (click)="mover(i, 1)" [disabled]="i === ordem.length - 1" aria-label="Descer">↓</button>
-                  </span>
-                </li>
-              }
-            </ol>
-          </div>
-        }
+  <section class="bloco">
 
-        <ul class="lista">
-          @for (m of maquinas; track m.id) {
-            <li>
-              <button type="button" class="cartao" [class.selecionado]="posicao(m) > 0" (click)="toggleMaquina(m)">
-                <div class="cartao-topo">
-                  <div class="cartao-texto">
-                    <strong class="mono">{{ m.tag }}</strong>
-                    <small>{{ m.nome }} · {{ m.setor }}</small>
-                  </div>
-                  @if (posicao(m) > 0) {
-                    <span class="badge">{{ posicao(m) }}º</span>
-                  }
-                </div>
-              </button>
-            </li>
-          }
-        </ul>
-      </section>
+    <h2 class="secao">
+
+      3. Máquinas e inspeções
+
+    </h2>
+
+    <p class="hint">
+
+      Selecione as técnicas
+      e as anomalias que devem ser observadas.
+
+    </p>
+
+    @for (
+      m of maquinas;
+      track m.id
+    ) {
+
+      <app-machine-card
+
+        [maquina]="m"
+
+        [tecnicas]="tecnicas"
+
+        [tecnicasSelecionadas]="
+          tecnicasPorMaquina[m.id] || []
+        "
+
+        [anomaliasSelecionadas]="
+          anomaliasPorMaquina[m.id] || {}
+        "
+
+        modo="selecao"
+
+        (toggleTecnica)="
+          toggleTecnicaMaquina($event)
+        "
+
+        (toggleAnomalia)="
+          toggleAnomaliaMaquina($event)
+        ">
+
+      </app-machine-card>
+
     }
 
+  </section>
+
+}
     <!-- PASSO 4: Revisar e salvar -->
     @if (passo === 4) {
       <section class="bloco">

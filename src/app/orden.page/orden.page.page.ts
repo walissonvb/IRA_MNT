@@ -21,8 +21,7 @@ import {
   IonTextarea,
   IonLabel,
 } from "@ionic/angular";
-
-import { MockDataService } from '../services/mock-data-service';
+import { FirebaseService } from '../services/firebase.service';
 import { OrdemServico } from '../models/index'; 
 import { Timestamp } from 'firebase/firestore';
 @Component({
@@ -53,7 +52,6 @@ import { Timestamp } from 'firebase/firestore';
 })
 
 export class OrdenPagePage implements OnInit {
-private dataService = inject(MockDataService);
 etapa = 1;
 ordemEncontrada: OrdemServico | null = null;
 novoStatus: 'pendente' | 'em andamento' | 'concluída' = 'em andamento';
@@ -64,14 +62,12 @@ novoStatus: 'pendente' | 'em andamento' | 'concluída' = 'em andamento';
     descricao: '',
     nomeUsuario: '',
     dataFechamento: Timestamp.now(),
-    dataAbertura: Timestamp.now(),
-    atualizadoPor: Timestamp.now(),
 
 
 
   };
 
-
+private firebaseService = inject(FirebaseService);
 
   constructor() { }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular';
@@ -19,21 +19,21 @@ import {
   chevronBackOutline,
 } from 'ionicons/icons';
 import { AppHeaderComponent } from '../app-header/app-header.component';
-import  {MockDataService} from '../services/mock-data-service';
+import { FirebaseService } from '../services/firebase.service';
 import {
   TecnicaPreditiva,
   Maquina,
   Equipe,
   RotaStop,
 } from '../models';
-
+import { MachineCardComponent } from '../machine-card/machine-card.component';
 
 @Component({
   selector: 'app-nova-rota.page',
   templateUrl: './nova-rota.page.page.html',
   styleUrls: ['./nova-rota.page.page.scss'],
   standalone: true,
-  imports: [IonContent, IonButton, IonIcon, FormsModule, AppHeaderComponent],
+  imports: [MachineCardComponent, IonContent, IonButton, IonIcon, FormsModule, AppHeaderComponent],
 })
 export class NovaRotaPagePage implements OnInit {
 
@@ -53,8 +53,9 @@ export class NovaRotaPagePage implements OnInit {
   salvando = false;
   erro = '';
 
+  
+  private firebaseService = inject(FirebaseService);
   constructor(
-    private data: MockDataService,
     private router: Router,
   ) {
     addIcons({
@@ -73,10 +74,199 @@ export class NovaRotaPagePage implements OnInit {
       chevronBackOutline,
     });
   }
+tecnicasPorMaquina:
+Record<string, string[]> = {};
 
-  ngOnInit(): void {
+anomaliasPorMaquina:
+Record<
+  string,
+  Record<string,string[]>
+> = {};
+
+async ngOnInit(): Promise<void> {
+
+  await Promise.all([
+    this.carregarTecnicas(),
+    this.carregarEquipes(),
+    this.carregarMaquinas()
+  ]);
+}
+async carregarTecnicas(): Promise<void> {
+
+  this.firebaseService
+    .getTecnicas()
+    .subscribe({
+
+      next: (dados) => {
+
+        console.log(
+          '[TECNICAS]',
+          dados
+        );
+
+        this.tecnicas = dados
+          .filter(
+            t => t.ativo !== false
+          )
+          .sort(
+            (a, b) =>
+              (a.ordem ?? 0) -
+              (b.ordem ?? 0)
+          );
+
+      },
+
+      error: (err) => {
+
+        console.error(
+          '[TECNICAS]',
+          err
+        );
+
+      }
+
+    });
+
+}
+
+async carregarEquipes(): Promise<void> {
+
+  this.firebaseService
+    .getEquipes()
+    .subscribe({
+
+      next: (dados) => {
+
+        console.log(
+          '[EQUIPES]',
+          dados
+        );
+
+        this.equipes = dados.filter(
+          e => e.ativa !== false
+        );
+
+      }
+
+    });
+
+}
+
+async carregarMaquinas(): Promise<void> {
+
+  this.firebaseService
+    .getMaquina()
+    .subscribe({
+
+      next: (dados) => {
+
+        console.log(
+          '[MAQUINAS]',
+          dados
+        );
+
+        this.maquinas = dados.filter(
+          m => m.ativa !== false
+        );
+
+      }
+
+    });
+
+}
+
+async salvar(): Promise<void> {
+
+  if (
+    !this.podeAvancar() ||
+    this.salvando
+  ) {
+    return;
   }
 
+  this.salvando = true;
+
+  try {
+
+    const equipe = this.equipes.find(
+      e => e.id === this.equipeId
+    );
+
+const stops: RotaStop[] =
+  this.ordem.map(
+    (m, index) => {
+
+      const tecnicasDaMaquina =
+        this.tecnicasPorMaquina[m.id] || [];
+
+      return {
+
+        maquinaId: m.id,
+
+        tag: m.tag,
+
+        nome: m.nome,
+
+        ordem: index + 1,
+
+        concluido: false,
+
+        tecnicas: tecnicasDaMaquina
+
+      };
+
+    }
+  );
+    const rotaId =
+      await this.firebaseService
+        .salvarRota({
+
+          nome:
+            this.nomeRota.trim(),
+
+          equipeId:
+            this.equipeId,
+
+          equipeNome:
+            equipe?.nome,
+
+          tecnicas:
+            [...this.selecionadas],
+
+          stops,
+
+          status:
+            'planejada'
+
+        });
+
+    console.log(
+      '[ROTA SALVA]',
+      rotaId
+    );
+
+    await this.router.navigate([
+      '/execucao',
+      rotaId
+    ]);
+
+  } catch (erro) {
+
+    console.error(
+      '[SALVAR ROTA]',
+      erro
+    );
+
+    this.erro =
+      'Erro ao salvar a rota';
+
+  } finally {
+
+    this.salvando = false;
+
+  }
+
+}
   toggleTecnica(id: string): void {
     if (this.selecionadas.has(id)) {
       this.selecionadas.delete(id);
@@ -153,36 +343,84 @@ export class NovaRotaPagePage implements OnInit {
     return `Rota ${nomes || 'preditiva'}`;
   }
 
-  async salvar(): Promise<void> {
-    if (!this.podeAvancar() || this.salvando) return;
-    this.salvando = true;
-    this.erro = '';
-
-    try {
-      const equipe = this.equipes.find((e) => e.id === this.equipeId);
-      const stops: RotaStop[] = this.ordem.map((m, i) => ({
-        maquinaId: m.id,
-        tag: m.tag,
-        nome: m.nome,
-        ordem: i + 1,
-        concluido: false,
-      }));
-
-      const rota = this.data.salvarRota({
-        nome: this.nomeRota.trim(),
-        tecnicas: [...this.selecionadas],
-        equipeId: this.equipeId,
-        equipeNome: equipe?.nome,
-        status: 'planejada',
-        stops,
-      });
-
-      // Em produção: await firebase.collection('rotas').add(...)
-      void this.router.navigate(['/execucao', rota.id]);
-    } catch (e) {
-      this.erro = e instanceof Error ? e.message : 'Erro ao salvar rota.';
-    } finally {
-      this.salvando = false;
-    }
+toggleTecnicaMaquina(
+  event: {
+    maquinaId: string;
+    tecnicaId: string;
   }
+): void {
+
+  const {
+    maquinaId,
+    tecnicaId
+  } = event;
+
+  if (!this.tecnicasPorMaquina[maquinaId]) {
+
+    this.tecnicasPorMaquina[
+      maquinaId
+    ] = [];
+
+  }
+
+  const lista =
+    this.tecnicasPorMaquina[
+      maquinaId
+    ];
+
+  const idx =
+    lista.indexOf(tecnicaId);
+
+  if (idx >= 0) {
+
+    lista.splice(idx, 1);
+
+  } else {
+
+    lista.push(tecnicaId);
+
+  }
+
+}
+
+toggleAnomaliaMaquina(
+  event: {
+    maquinaId: string;
+    tecnicaId: string;
+    anomalia: string;
+  }
+): void {
+
+  const {
+    maquinaId,
+    tecnicaId,
+    anomalia
+  } = event;
+
+  this.anomaliasPorMaquina[maquinaId] ??= {};
+
+  this.anomaliasPorMaquina[
+    maquinaId
+  ][tecnicaId] ??= [];
+
+  const lista =
+    this.anomaliasPorMaquina[
+      maquinaId
+    ][tecnicaId];
+
+  const idx =
+    lista.indexOf(anomalia);
+
+  if (idx >= 0) {
+
+    lista.splice(idx, 1);
+
+  } else {
+
+    lista.push(anomalia);
+
+  }
+
+}
+
 }

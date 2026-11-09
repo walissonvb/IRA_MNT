@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
+import {
   IonContent,
   IonButton,
   IonIcon,
@@ -11,10 +10,9 @@ import {
   IonTitle,
   IonToolbar,
   IonHeader,
- } from '@ionic/angular';
+} from '@ionic/angular';
 import { AppHeaderComponent } from '../app-header/app-header.component';
-import { MockDataService } from '../services/mock-data-service';
-import { Rota, RotaStop, TecnicaPreditiva, Julgamento } from '../models/index';
+import { Rota, RotaStop, TecnicaPreditiva } from '../models/index';
 import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline,
@@ -22,6 +20,8 @@ import {
   documentTextOutline,
   chevronForwardOutline,
 } from 'ionicons/icons';
+import { FirebaseService } from '../services/firebase.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-execucao.page',
@@ -43,7 +43,13 @@ import {
   ]
 })
 export class ExecucaoPagePage implements OnInit {
-  rota?: Rota;
+  anomaliasEncontradas:
+    Record<string, string[]> = {};
+
+  observacoesTecnica:
+    Record<string, string> = {};
+
+  rota: Rota | null = null;
   tecnicas: TecnicaPreditiva[] = [];
   carregando = true;
   erro = '';
@@ -52,15 +58,13 @@ export class ExecucaoPagePage implements OnInit {
   editando: number | null = null;
 
   /** Valores do formulário de leitura */
-  leituras: Record<string, string> = {};
-  julgamento: Julgamento = 'normal';
-  observacao = '';
-  salvando = false;
+  leituras: Record<string, any> = {};
 
+  salvando = false;
+  private firebase = inject(FirebaseService);
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private data: MockDataService,
   ) {
     addIcons({
       checkmarkCircleOutline,
@@ -80,18 +84,77 @@ export class ExecucaoPagePage implements OnInit {
     this.carregar(id);
   }
 
-  carregar(id: string): void {
-    this.carregando = true;
-    // Em produção: firebase.collection('rotas').doc(id).get()
-    this.rota = this.data.getRota(id);
-    if (!this.rota) {
-      this.erro = 'Rota não encontrada.';
+  isAnomaliaSelecionada(
+    tecnicaId: string,
+    anomalia: string
+  ): boolean {
+
+    return (
+      this.anomaliasEncontradas[
+      tecnicaId
+      ] || []
+    ).includes(anomalia);
+
+  }
+
+  toggleAnomalia(
+    tecnicaId: string,
+    anomalia: string
+  ): void {
+
+    this.anomaliasEncontradas[
+      tecnicaId
+    ] ??= [];
+
+    const lista =
+      this.anomaliasEncontradas[
+      tecnicaId
+      ];
+
+    const idx =
+      lista.indexOf(anomalia);
+
+    if (idx >= 0) {
+
+      lista.splice(idx, 1);
+
     } else {
-      this.tecnicas = this.data
-        .getTecnicas()
-        .filter((t) => this.rota!.tecnicas.includes(t.id));
+
+      lista.push(anomalia);
+
     }
-    this.carregando = false;
+
+  }
+  async carregar(id: string): Promise<void> {
+
+    this.carregando = true;
+
+    try {
+
+      this.rota = await this.firebase.getRota(id);
+
+      console.log('[EXECUCAO] rota:', this.rota);
+
+      if (!this.rota) {
+        this.erro = 'Rota não encontrada.';
+        return;
+      }
+
+
+    } catch (erro) {
+
+      console.error(
+        '[EXECUCAO] erro carregar rota',
+        erro
+      );
+
+      this.erro = 'Erro ao carregar rota';
+
+    } finally {
+
+      this.carregando = false;
+
+    }
   }
 
   doneCount(): number {
@@ -104,23 +167,28 @@ export class ExecucaoPagePage implements OnInit {
   }
 
   abrirStop(ordem: number): void {
-    if (!this.rota) return;
-    const stop = this.rota.stops.find((s) => s.ordem === ordem);
-    if (!stop) return;
+
+    if (!this.rota) {
+      return;
+    }
+
+    const stop =
+      this.rota.stops.find(
+        s => s.ordem === ordem
+      );
+
+    if (!stop) {
+      return;
+    }
 
     this.editando = ordem;
+
     this.leituras = {};
-    this.julgamento = stop.julgamento || 'normal';
-    this.observacao = stop.observacao || '';
 
-    // Pré-preenche se já tiver leitura
-    if (stop.leituras) {
-      for (const [k, v] of Object.entries(stop.leituras)) {
-        this.leituras[k] = String(v);
-      }
-    }
+    this.anomaliasEncontradas = {};
+
+
   }
-
   fecharStop(): void {
     this.editando = null;
   }
@@ -131,35 +199,54 @@ export class ExecucaoPagePage implements OnInit {
   }
 
   async salvarLeitura(): Promise<void> {
-    if (!this.rota || this.editando == null || this.salvando) return;
+
+    if (
+      !this.rota ||
+      this.editando == null ||
+      this.salvando
+    ) {
+      return;
+    }
+
     this.salvando = true;
 
-    const valores: Record<string, number | string> = {};
-    for (const t of this.tecnicas) {
-      const v = this.leituras[t.campoPrincipal];
-      if (v !== undefined && v !== '') {
-        const num = Number(v);
-        valores[t.campoPrincipal] = isNaN(num) ? v : num;
+    try {
+
+      const stop = this.stopAtual();
+
+      if (!stop) {
+        return;
       }
+
+      const payload = {
+
+        rotaId: this.rota.id,
+
+        maquinaId: stop.maquinaId,
+
+        maquinaNome: stop.nome,
+
+        leituras: this.leituras,
+
+        anomaliasEncontradas:
+          this.anomaliasEncontradas
+
+      };
+
+      console.log(
+        '[LEITURA]',
+        payload
+      );
+
+      this.editando = null;
+
+    } finally {
+
+      this.salvando = false;
+
     }
 
-    // Em produção: await firebase update
-    const atualizada = this.data.atualizarStop(this.rota.id, this.editando, {
-      concluido: true,
-      leituras: valores,
-      julgamento: this.julgamento,
-      observacao: this.observacao.trim() || undefined,
-    });
-
-    if (atualizada) {
-      this.rota = atualizada;
-    }
-
-    this.salvando = false;
-    this.editando = null;
-  }
-
-  /** Continua a partir do próximo não concluído após o atual, ou o primeiro pendente */
+  }  /** Continua a partir do próximo não concluído após o atual, ou o primeiro pendente */
   proximoPendente(): void {
     if (!this.rota) return;
     const atual = this.editando ?? 0;
@@ -186,31 +273,20 @@ export class ExecucaoPagePage implements OnInit {
   }
 
   gerarRelatorio(): void {
-    if (!this.rota) return;
-    // Gera OS no mesmo modelo de abertura existente
-    const criticos = this.rota.stops.filter(
-      (s) => s.concluido && (s.julgamento === 'atencao' || s.julgamento === 'critico'),
-    );
 
-    if (criticos.length === 0) {
-      // Relatório simples — navega para ordens com contexto
-      void this.router.navigate(['/ordens'], {
-        queryParams: { rotaId: this.rota.id, relatorio: 'ok' },
-      });
+    if (!this.rota) {
       return;
     }
 
-    // Cria OS para o primeiro crítico como exemplo
-    const stop = criticos[0];
-    const desc = `Desvio detectado na ronda "${this.rota.nome}". ` +
-      `Julgamento: ${stop.julgamento}. ` +
-      (stop.observacao ? `Obs: ${stop.observacao}` : '') +
-      (stop.leituras ? ` Leituras: ${JSON.stringify(stop.leituras)}` : '');
+    void this.router.navigate([
+      '/ordens'
+    ], {
+      queryParams: {
+        rotaId: this.rota.id
+      }
+    });
 
-    this.data.criarOrdemDeRota(this.rota.id, stop, desc);
-    void this.router.navigate(['/ordens']);
   }
-
   rotuloStatus(s: string): string {
     const map: Record<string, string> = {
       planejada: 'Planejada',

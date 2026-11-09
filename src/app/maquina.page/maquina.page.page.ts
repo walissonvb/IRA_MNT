@@ -2,9 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import {
   IonContent,
   IonIcon,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonCard,
   IonCardHeader,
   IonCardTitle,
@@ -18,24 +15,25 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  constructOutline, warningOutline, chevronUpOutline,
-  chevronDownOutline,
+  constructOutline, warningOutline,
 } from 'ionicons/icons';
 import { AppHeaderComponent } from '../app-header/app-header.component';
-import { Maquina } from '../models';
+import { Maquina, StatCard } from '../models';
 import { FirebaseService } from '../services/firebase.service';
 import { CommonModule } from '@angular/common';
+import { CarrocelComponent } from '../carrocel/carrocel.component';
+import { firstValueFrom } from 'rxjs';
+import { MachineCardComponent } from '../machine-card/machine-card.component';
+
 
 @Component({
+  standalone: true,
   selector: 'app-maquina.page',
   templateUrl: './maquina.page.page.html',
   styleUrls: ['./maquina.page.page.scss'],
   imports: [
     IonContent,
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonIcon,
     IonCard,
     IonCardHeader,
@@ -47,13 +45,19 @@ import { CommonModule } from '@angular/common';
     IonChip,
     IonButton,
     IonIcon,
-    AppHeaderComponent]
+    AppHeaderComponent,
+    CarrocelComponent,
+    MachineCardComponent
+  ]
 })
 export class MaquinaPagePage implements OnInit {
   maquinas: Maquina[] = [];
   expandida: string | null = null;
-  carregando = true;
 
+  carregando = true;
+  statsCarregados = false;
+
+  stats: StatCard[] = [];
 
   private firebaseService = inject(FirebaseService);
   constructor() {
@@ -64,19 +68,66 @@ export class MaquinaPagePage implements OnInit {
     this.carregarMaquinas();
   }
 
-  carregarMaquinas(): void {
-    this.firebaseService.getMaquina().subscribe({
-      next: (dados) => {
-        this.maquinas = dados;
-        this.carregando = false;
-      },
-      error: (erro) => {
-        console.error('Erro ao carregar máquinas', erro);
-        this.carregando = false;
-      }
-    });
-  }
+  async carregarMaquinas(): Promise<void> {
 
+    try {
+
+      this.carregando = true;
+      this.statsCarregados = false;
+
+      const maquinas = await firstValueFrom(
+        this.firebaseService.getMaquina()
+      );
+
+      this.maquinas = maquinas ?? [];
+
+      this.stats = [
+        {
+          label: 'Máquinas',
+          value: this.maquinas.length,
+          hint: 'Total cadastrado',
+          link: '/maquina'
+        },
+        {
+          label: 'Críticas',
+          value: this.maquinas.filter(
+            m => m.status?.toLowerCase() === 'critico'
+          ).length,
+          hint: 'Prioridade alta',
+          link: '/maquina'
+        },
+        {
+          label: 'Com local',
+          value: this.maquinas.filter(
+            m => !!m.local?.trim()
+          ).length,
+          hint: 'Local preenchido',
+          link: '/maquina'
+        },
+        {
+          label: 'Setores',
+          value: new Set(
+            this.maquinas
+              .map(m => m.setor)
+              .filter(Boolean)
+          ).size,
+          hint: 'Setores distintos',
+          link: '/maquina'
+        }
+      ];
+
+      this.statsCarregados = true;
+
+    } catch (erro) {
+
+      console.error(erro);
+
+    } finally {
+
+      this.carregando = false;
+
+    }
+  }
   toggle(id: string): void {
     this.expandida =
       this.expandida === id

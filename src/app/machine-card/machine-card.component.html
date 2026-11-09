@@ -1,0 +1,346 @@
+<ion-card class="machine-card">
+
+  <ion-card-header>
+
+    <ion-card-title>
+
+      <div class="titulo-card">
+
+        <div>
+
+          <strong>{{ maquina.nome }}</strong>
+
+          <br>
+
+          <small>{{ maquina.tag }}</small>
+
+        </div>
+
+        @if (maquina.status) {
+
+          <ion-badge
+            [color]="getStatusColor(maquina.status)">
+
+            {{ maquina.status | uppercase }}
+
+          </ion-badge>
+
+        }
+
+      </div>
+
+    </ion-card-title>
+
+  </ion-card-header>
+
+  <div class="ion-padding">
+
+    <div class="field-box">
+
+      <strong>Setor</strong>
+
+      <p>{{ maquina.setor }}</p>
+
+    </div>
+
+    <div class="field-box">
+
+      <strong>Local</strong>
+
+      <p>{{ maquina.local || 'Não informado' }}</p>
+
+    </div>
+
+    @if (modo === 'consulta') {
+
+      <ion-grid>
+
+        <ion-row>
+
+          <ion-col size="6">
+
+            <small>Temperatura</small>
+
+            <p>
+              {{ maquina.temperatura ?? '—' }} °C
+            </p>
+
+          </ion-col>
+
+          <ion-col size="6">
+
+            <small>Vibração</small>
+
+            <p>
+              {{ maquina.vibracaoGlobal ?? '—' }} mm/s
+            </p>
+
+          </ion-col>
+
+          <ion-col size="6">
+
+            <small>Saúde</small>
+
+            <p>
+              {{ maquina.indiceSaude ?? '—' }}%
+            </p>
+
+          </ion-col>
+
+          <ion-col size="6">
+
+            <small>Lubrificação</small>
+
+            <p>
+              {{ maquina.lubrificacao || '—' }}
+            </p>
+
+          </ion-col>
+
+        </ion-row>
+
+      </ion-grid>
+
+      @if (maquina.pendencias?.length) {
+
+        <div class="chips-container">
+
+          @for (
+            p of maquina.pendencias;
+            track $index
+          ) {
+
+            <ion-chip
+              color="danger"
+              outline>
+
+              {{ p }}
+
+            </ion-chip>
+
+          }
+
+        </div>
+
+      }
+
+    }
+
+@if (modo === 'selecao') {
+
+  <ion-card>
+
+    <ion-card-header>
+
+      <ion-card-title>
+
+        {{ maquina.nome }}
+
+      </ion-card-title>
+
+    </ion-card-header>
+
+    <div class="ion-padding">
+
+      <p>
+
+        <strong>TAG:</strong>
+
+        {{ maquina.tag }}
+
+      </p>
+
+      <p>
+
+        <strong>Local:</strong>
+
+        {{ maquina.local || 'Não informado' }}
+
+      </p>
+
+      <strong>
+
+        Técnicas da Rota
+
+      </strong>
+
+      @for (t of tecnicas; track t.id) {
+
+        <div class="tecnica-box">
+
+          <ion-chip
+
+            [color]="
+              tecnicasSelecionadas.includes(t.id)
+              ? 'success'
+              : 'medium'
+            "
+
+            (click)="
+              toggleTecnica.emit({
+                maquinaId: maquina.id,
+                tecnicaId: t.id
+              })
+            ">
+
+            {{ t.nome }}
+
+          </ion-chip>
+
+          @if (
+            tecnicasSelecionadas.includes(t.id)
+          ) {
+
+            <div class="anomalias">
+
+              @for (
+                a of t.descricao;
+                track a
+              ) {
+
+                <ion-chip
+                  outline
+                  color="warning"
+
+                  (click)="
+                    toggleAnomalia.emit({
+                      maquinaId: maquina.id,
+                      tecnicaId: t.id,
+                      anomalia: a
+                    })
+                  ">
+
+                  {{ a }}
+
+                </ion-chip>
+
+              }
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+
+  </ion-card>
+
+}
+
+    @if (modo === 'execucao') {
+
+      <div class="field-box">
+
+        <strong>Técnicas da Rota</strong>
+
+      </div>
+
+      @if (tecnicas.length > 0) {
+
+        <div class="chips-container">
+
+          @for (
+            t of tecnicas;
+            track t.id
+          ) {
+
+            <ion-chip>
+
+              {{ t.nome }}
+
+            </ion-chip>
+
+          }
+
+        </div>
+
+      } @else {
+
+        <p>
+          Nenhuma técnica vinculada.
+        </p>
+
+      }
+
+      <div class="field-box">
+
+        <strong>Última medição</strong>
+
+        @if (maquina.ultimaMedicao) {
+
+          <p>
+            {{ maquina.ultimaMedicao | date:'dd/MM/yyyy HH:mm' }}
+          </p>
+
+        } @else {
+
+          <p>Sem registro</p>
+
+        }
+
+      </div>
+
+      <div class="field-box">
+
+        <strong>Próxima manutenção</strong>
+
+        @if (maquina.proximaManutencao) {
+
+          <p
+            [class.text-danger]="
+              isOverdue(maquina.proximaManutencao)
+            ">
+
+            {{ maquina.proximaManutencao | date:'dd/MM/yyyy' }}
+
+          </p>
+
+        } @else {
+
+          <p>Sem agendamento</p>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+  @if (modo === 'consulta') {
+
+    <ion-row class="ion-padding">
+
+      <ion-col>
+
+        <ion-button
+          expand="block"
+          (click)="editar.emit(maquina)">
+
+          Editar
+
+        </ion-button>
+
+      </ion-col>
+
+      <ion-col>
+
+        <ion-button
+          expand="block"
+          color="danger"
+          (click)="excluir.emit(maquina.id)">
+
+          Excluir
+
+        </ion-button>
+
+      </ion-col>
+
+    </ion-row>
+
+  }
+
+</ion-card>

@@ -16,7 +16,6 @@ export class AlmoxerifadoPagePage implements OnInit {
   constructor(private data: MockDataService) {}
 
   ngOnInit(): void {
-    this.itens = this.data.getAlmoxarifado();
   }
 
   baixo(i: ItemAlmoxarifado): boolean {

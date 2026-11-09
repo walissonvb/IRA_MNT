@@ -3,7 +3,7 @@
 <ion-content [fullscreen]="true">
   <div class="page">
     @if (erro) {
-      <p class="erro">{{ erro }}</p>
+    <p class="erro">{{ erro }}</p>
     }
 
     <p class="kicker">{{ kicker }}</p>
@@ -12,49 +12,82 @@
       Monte a ronda, execute na sequência dos equipamentos e feche com a ordem de serviço.
     </p>
 
+    <app-carrocel [stats]="stats"></app-carrocel>
 
-<section class="stats-carousel" aria-label="Indicadores" (mouseenter)="pausarCarousel()" (mouseleave)="retomarCarousel()">
-  @if (carregando && !statsCarregados) {
-    <div class="stats-loading">
-      <ion-spinner name="crescent"></ion-spinner>
-    </div>
-  } @else if (stats.length) {
-    <div class="carousel-viewport">
-      <div
-        class="carousel-track"
-        [style.transform]="'translateX(-' + slideAtivo * 100 + '%)'">
-        @for (stat of stats; track stat.label; let i = $index) {
-          <button
-            type="button"
-            class="stat-card slide"
-            (click)="abrir(stat.link)"
-            [attr.aria-label]="stat.label + ': ' + stat.value"
-            [attr.aria-hidden]="i !== slideAtivo">
-            <span class="stat-label">{{ stat.label }}</span>
-            <span class="stat-valor">{{ stat.value }}</span>
-            @if (stat.hint) {
-              <span class="stat-hint">{{ stat.hint }}</span>
-            }
-          </button>
-        }
+
+
+
+    <section class="bloco">
+      <h2 class="secao">Rotas para executar</h2>
+
+      @if (carregando) {
+      <div class="vazio">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Carregando rotas…</p>
       </div>
-    </div>
-
-    <div class="carousel-dots" role="tablist">
-      @for (stat of stats; track stat.label; let i = $index) {
-        <button
-          type="button"
-          class="dot"
-          [class.ativo]="i === slideAtivo"
-          (click)="irParaSlide(i)"
-          [attr.aria-label]="'Indicador ' + (i + 1)">
-        </button>
+      } @else if (rotas.length === 0) {
+      <div class="vazio">
+        <strong>Nenhuma rota aberta</strong>
+        <p>Crie uma rota com as técnicas e a ordem dos equipamentos.</p>
+      </div>
+      } @else {
+      <ul class="lista">
+        @for (rota of rotas; track rota.id) {
+        <li>
+          <button type="button" class="cartao" (click)="abrirExecucao(rota.id)">
+            <div class="cartao-topo">
+              <div class="cartao-texto">
+                <strong>{{ rota.nome }}</strong>
+                <small>{{ rota.equipeNome || 'Sem equipe' }}</small>
+              </div>
+              <span class="badge" [class]="rota.status">{{ rotuloStatus(rota.status) }}</span>
+            </div>
+            <div class="barra" role="progressbar" [attr.aria-valuenow]="doneCount(rota)"
+              [attr.aria-valuemax]="rota.stops.length">
+              <i [style.width.%]="progresso(rota)"></i>
+            </div>
+            <small class="progresso-txt">
+              {{ doneCount(rota) }} de {{ rota.stops.length }} equipamentos
+            </small>
+          </button>
+        </li>
+        }
+      </ul>
       }
-    </div>
-  }
-</section>
+    </section>
 
-    <div class="acoes">
+    <section class="bloco">
+      <h2 class="secao">Desvios recentes</h2>
+
+      @if (!carregando && alertas.length === 0) {
+      <div class="vazio">
+        <strong>Sem desvios</strong>
+        <p>Leituras de atenção e críticas aparecem aqui.</p>
+      </div>
+      } @else {
+      <ul class="lista">
+        @for (a of alertas; track a.id) {
+        <li>
+          <button type="button" class="cartao" (click)="abrir(a.link || '/lista-rotas')">
+            <div class="cartao-topo">
+              <div class="cartao-texto">
+                <strong class="mono">{{ a.tag }}</strong>
+                <small>{{ a.machineName }}</small>
+                <small>{{ a.techniqueLabel }} · {{ a.reading }}</small>
+                @if (a.recordedLabel) {
+                <small class="faint">{{ a.recordedLabel }} · {{ a.sourceLabel }}</small>
+                }
+              </div>
+              <span class="badge" [class]="a.judgment">{{ rotuloJulgamento(a.judgment) }}</span>
+            </div>
+          </button>
+        </li>
+        }
+      </ul>
+      }
+    </section>
+  </div>
+      <div class="acoes">
       <ion-button class="btn-primario" routerLink="/nova-rota.page" routerDirection="forward">
         Nova rota
       </ion-button>
@@ -63,76 +96,4 @@
       </ion-button>
     </div>
 
-
-    <section class="bloco">
-      <h2 class="secao">Rotas para executar</h2>
-
-      @if (carregando) {
-        <div class="vazio">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Carregando rotas…</p>
-        </div>
-      } @else if (rotas.length === 0) {
-        <div class="vazio">
-          <strong>Nenhuma rota aberta</strong>
-          <p>Crie uma rota com as técnicas e a ordem dos equipamentos.</p>
-        </div>
-      } @else {
-        <ul class="lista">
-          @for (rota of rotas; track rota.id) {
-            <li>
-              <button type="button" class="cartao" (click)="abrirExecucao(rota.id)">
-                <div class="cartao-topo">
-                  <div class="cartao-texto">
-                    <strong>{{ rota.nome }}</strong>
-                    <small>{{ rota.equipeNome || 'Sem equipe' }}</small>
-                  </div>
-                  <span class="badge" [class]="rota.status">{{ rotuloStatus(rota.status) }}</span>
-                </div>
-                <div class="barra" role="progressbar"
-                     [attr.aria-valuenow]="doneCount(rota)"
-                     [attr.aria-valuemax]="rota.stops.length">
-                  <i [style.width.%]="progresso(rota)"></i>
-                </div>
-                <small class="progresso-txt">
-                  {{ doneCount(rota) }} de {{ rota.stops.length }} equipamentos
-                </small>
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-
-    <section class="bloco">
-      <h2 class="secao">Desvios recentes</h2>
-
-      @if (!carregando && alertas.length === 0) {
-        <div class="vazio">
-          <strong>Sem desvios</strong>
-          <p>Leituras de atenção e críticas aparecem aqui.</p>
-        </div>
-      } @else {
-        <ul class="lista">
-          @for (a of alertas; track a.id) {
-            <li>
-              <button type="button" class="cartao" (click)="abrir(a.link || '/lista-rotas')">
-                <div class="cartao-topo">
-                  <div class="cartao-texto">
-                    <strong class="mono">{{ a.tag }}</strong>
-                    <small>{{ a.machineName }}</small>
-                    <small>{{ a.techniqueLabel }} · {{ a.reading }}</small>
-                    @if (a.recordedLabel) {
-                      <small class="faint">{{ a.recordedLabel }} · {{ a.sourceLabel }}</small>
-                    }
-                  </div>
-                  <span class="badge" [class]="a.judgment">{{ rotuloJulgamento(a.judgment) }}</span>
-                </div>
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-  </div>
 </ion-content>

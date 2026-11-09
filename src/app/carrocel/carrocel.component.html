@@ -1,0 +1,38 @@
+<section class="stats-carousel" aria-label="Indicadores" (mouseenter)="pausarCarousel()"
+  (mouseleave)="retomarCarousel()">
+  @if (carregando && !statsCarregados) {
+  <div class="stats-loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+  } @else if (stats.length) {
+  <div class="carousel-viewport">
+    <div class="carousel-track" [style.transform]="'translateX(-' + slideAtivo * 100 + '%)'">
+      @for (stat of stats; track stat.label; let i = $index) {
+      <ion-card class="stat-card slide" (click)="abrir(stat.link)" [attr.aria-label]="stat.label + ': ' + stat.value">
+        
+        <span class="stat-label">
+          {{ stat.label }}
+        </span>
+
+        <span class="stat-value">
+          {{ stat.value }}
+        </span>
+
+        @if (stat.hint) {
+        <span class="stat-hint">
+          {{ stat.hint }}
+        </span>
+        }
+      </ion-card> }
+    </div>
+  </div>
+
+  <div class="carousel-dots" role="tablist">
+    @for (stat of stats; track stat.label; let i = $index) {
+    <button type="button" class="dot" [class.ativo]="i === slideAtivo" (click)="irParaSlide(i)"
+      [attr.aria-label]="'Indicador ' + (i + 1)">
+    </button>
+    }
+  </div>
+  }
+</section>
