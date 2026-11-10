@@ -75,20 +75,7 @@ export class MachineCardComponent {
   @Output()
   toggle =
     new EventEmitter<Maquina>();
-  @Output()
-  toggleTecnica =
-    new EventEmitter<{
-      maquinaId: string;
-      tecnicaId: string;
-    }>();
 
-  @Output()
-  toggleAnomalia =
-    new EventEmitter<{
-      maquinaId: string;
-      tecnicaId: string;
-      anomalia: string;
-    }>();
   getStatusColor(status?: string): string {
 
     switch (status?.toLowerCase()) {

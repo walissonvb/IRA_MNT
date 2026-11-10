@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -61,6 +61,7 @@ export class ExecucaoPagePage implements OnInit {
   leituras: Record<string, any> = {};
 
   salvando = false;
+  private cdr = inject(ChangeDetectorRef);
   private firebase = inject(FirebaseService);
   constructor(
     private route: ActivatedRoute,
@@ -153,7 +154,7 @@ export class ExecucaoPagePage implements OnInit {
     } finally {
 
       this.carregando = false;
-
+      this.cdr.detectChanges();
     }
   }
 

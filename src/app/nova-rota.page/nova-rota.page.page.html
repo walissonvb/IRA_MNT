@@ -16,150 +16,116 @@
     </div>
 
     @if (erro) {
-      <p class="erro">{{ erro }}</p>
+    <p class="erro">{{ erro }}</p>
     }
 
     <!-- PASSO 1: Técnicas -->
     @if (passo === 1) {
-      <section class="bloco">
-        <h2 class="secao">1. Técnicas preditivas</h2>
-        <p class="hint">Selecione uma ou mais técnicas que serão aplicadas em todos os pontos da rota.</p>
-        <div class="chips">
-          @for (t of tecnicas; track t.id) {
-            <button
-              type="button"
-              class="chip"
-              [class.selecionado]="isSelecionada(t.id)"
-              (click)="toggleTecnica(t.id)"
-            >
-              <ion-icon [name]="t.icon"></ion-icon>
-              {{ t.nome }}
-            </button>
-          }
-        </div>
-      </section>
+    <section class="bloco">
+      <h2 class="secao">1. Técnicas preditivas</h2>
+      <p class="hint">Selecione uma ou mais técnicas que serão aplicadas em todos os pontos da rota.</p>
+      <div class="chips">
+        @for (t of tecnicas; track t.id) {
+        <button type="button" class="chip" [class.selecionado]="isSelecionada(t.id)" (click)="toggleTecnica(t.id)">
+          <ion-icon [name]="t.icon"></ion-icon>
+          {{ t.nome }}
+        </button>
+        }
+      </div>
+    </section>
     }
 
     <!-- PASSO 2: Equipe -->
     @if (passo === 2) {
-      <section class="bloco">
-        <h2 class="secao">2. Equipe responsável</h2>
-        <ul class="lista">
-          @for (eq of equipes; track eq.id) {
-            <li>
-              <button
-                type="button"
-                class="cartao"
-                [class.selecionado]="equipeId === eq.id"
-                (click)="selecionarEquipe(eq.id)"
-              >
-                <div class="cartao-topo">
-                  <div class="cartao-texto">
-                    <strong>{{ eq.nome }}</strong>
-                    <small>{{ eq.membros.join(', ') }}</small>
-                  </div>
-                  @if (equipeId === eq.id) {
-                    <ion-icon name="checkmark-outline" class="check"></ion-icon>
-                  }
-                </div>
-              </button>
-            </li>
-          }
-        </ul>
-      </section>
+    <section class="bloco">
+      <h2 class="secao">2. Equipe responsável</h2>
+      <ul class="lista">
+        @for (eq of equipes; track eq.id) {
+        <li>
+          <button type="button" class="cartao" [class.selecionado]="equipeId === eq.id"
+            (click)="selecionarEquipe(eq.id)">
+            <div class="cartao-topo">
+              <div class="cartao-texto">
+                <strong>{{ eq.nome }}</strong>
+                <small>{{ eq.membros.join(', ') }}</small>
+              </div>
+              @if (equipeId === eq.id) {
+              <ion-icon name="checkmark-outline" class="check"></ion-icon>
+              }
+            </div>
+          </button>
+        </li>
+        }
+      </ul>
+    </section>
     }
 
     <!-- PASSO 3: Equipamentos em ordem -->
-@if (passo === 3) {
+    @if (passo === 3) {
 
-  <section class="bloco">
+    <section class="bloco">
 
-    <h2 class="secao">
+      <h2 class="secao">
 
-      3. Máquinas e inspeções
+        3. Máquinas e inspeções
 
-    </h2>
+      </h2>
 
-    <p class="hint">
+      <p class="hint">
 
-      Selecione as técnicas
-      e as anomalias que devem ser observadas.
+        Selecione as técnicas
+        e as anomalias que devem ser observadas.
 
-    </p>
+      </p>
 
-    @for (
-      m of maquinas;
-      track m.id
-    ) {
+@for (m of maquinas; track m.id) {
+  <div class="chips">
+    <button
+      type="button"
+      class="chip"
+      [class.selecionado]="isMaquinaSelecionada(m.id)"
+      (click)="toggleMaquina(m)">
 
-      <app-machine-card
+      {{ m.nome }}
 
-        [maquina]="m"
-
-        [tecnicas]="tecnicas"
-
-        [tecnicasSelecionadas]="
-          tecnicasPorMaquina[m.id] || []
-        "
-
-        [anomaliasSelecionadas]="
-          anomaliasPorMaquina[m.id] || {}
-        "
-
-        modo="selecao"
-
-        (toggleTecnica)="
-          toggleTecnicaMaquina($event)
-        "
-
-        (toggleAnomalia)="
-          toggleAnomaliaMaquina($event)
-        ">
-
-      </app-machine-card>
+    </button>
+    
+  </div>
+}
+    </section>
 
     }
-
-  </section>
-
-}
     <!-- PASSO 4: Revisar e salvar -->
     @if (passo === 4) {
-      <section class="bloco">
-        <h2 class="secao">4. Revisar e salvar</h2>
+    <section class="bloco">
+      <h2 class="secao">4. Revisar e salvar</h2>
 
-        <div class="campo">
-          <label for="nome">Nome da rota</label>
-          <input id="nome" type="text" [(ngModel)]="nomeRota" placeholder="Ex: Ronda semanal utilidades" />
-        </div>
+      <div class="campo">
+        <label for="nome">Nome da rota</label>
+        <input id="nome" type="text" [(ngModel)]="nomeRota" placeholder="Ex: Ronda semanal utilidades" />
+      </div>
 
-        <div class="resumo">
-          <p><strong>Técnicas:</strong> {{ selecionadas.size }} selecionada(s)</p>
-          <p><strong>Equipe:</strong> {{ nomeEquipe() }}</p>
-          <p><strong>Pontos:</strong> {{ ordem.length }} equipamento(s)</p>
-        </div>
-      </section>
+      <div class="resumo">
+        <p><strong>Técnicas:</strong> {{ selecionadas.size }} selecionada(s)</p>
+        <p><strong>Equipe:</strong> {{ nomeEquipe() }}</p>
+        <p><strong>Pontos:</strong> {{ ordem.length }} equipamento(s)</p>
+      </div>
+    </section>
     }
 
     <div class="acoes">
       @if (passo > 1) {
-        <ion-button class="btn-secundario" fill="outline" (click)="voltar()">
-          <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
-          Voltar
-        </ion-button>
+      <ion-button class="btn-secundario" fill="outline" (click)="voltar()">
+        <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
+        Voltar
+      </ion-button>
       }
-      <ion-button
-        class="btn-primario"
-        [class.btn-full]="passo === 1"
-        [disabled]="!podeAvancar() || salvando"
-        (click)="avancar()"
-      >
-        @if (passo < 4) {
-          Continuar
-          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
-        } @else {
+      <ion-button class="btn-primario" [class.btn-full]="passo === 1" [disabled]="!podeAvancar() || salvando"
+        (click)="avancar()">
+        @if (passo < 4) { Continuar <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+          } @else {
           {{ salvando ? 'Salvando…' : 'Salvar rota' }}
-        }
+          }
       </ion-button>
     </div>
   </div>

@@ -1,4 +1,4 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Auth,
   authState,
@@ -45,7 +45,6 @@ export class FirebaseService {
 
   private firestore = inject(Firestore);
   private auth = inject(Auth);
-  private injector = inject(Injector);
 
   user$ = authState(this.auth);
 

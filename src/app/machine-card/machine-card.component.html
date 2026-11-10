@@ -158,71 +158,7 @@
 
       </p>
 
-      <strong>
 
-        Técnicas da Rota
-
-      </strong>
-
-      @for (t of tecnicas; track t.id) {
-
-        <div class="tecnica-box">
-
-          <ion-chip
-
-            [color]="
-              tecnicasSelecionadas.includes(t.id)
-              ? 'success'
-              : 'medium'
-            "
-
-            (click)="
-              toggleTecnica.emit({
-                maquinaId: maquina.id,
-                tecnicaId: t.id
-              })
-            ">
-
-            {{ t.nome }}
-
-          </ion-chip>
-
-          @if (
-            tecnicasSelecionadas.includes(t.id)
-          ) {
-
-            <div class="anomalias">
-
-              @for (
-                a of t.descricao;
-                track a
-              ) {
-
-                <ion-chip
-                  outline
-                  color="warning"
-
-                  (click)="
-                    toggleAnomalia.emit({
-                      maquinaId: maquina.id,
-                      tecnicaId: t.id,
-                      anomalia: a
-                    })
-                  ">
-
-                  {{ a }}
-
-                </ion-chip>
-
-              }
-
-            </div>
-
-          }
-
-        </div>
-
-      }
 
     </div>
 

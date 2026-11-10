@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { IonContent, IonButton, IonSpinner, IonCard } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
-import { Subscription, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { FirebaseService } from '../services/firebase.service';
 import { DashboardAlerta, Rota, Maquina, StatCard } from '../models/index';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { CarrocelComponent } from '../carrocel/carrocel.component';
+import { ViewWillEnter, ViewDidEnter } from '@ionic/angular';
 
 const STATUS_LABEL: Record<string, string> = {
   planejada: 'Planejada',
@@ -27,7 +27,7 @@ const JULGAMENTO_LABEL: Record<string, string> = {
   standalone: true,
   imports: [IonCard, IonContent, IonButton, IonSpinner, RouterLink, AppHeaderComponent, CarrocelComponent],
 })
-export class HomePagePage implements OnInit, OnDestroy {
+export class HomePagePage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEnter {
   carregando = true;
   statsCarregados = false;
   erro = '';
@@ -48,11 +48,19 @@ export class HomePagePage implements OnInit, OnDestroy {
   private carouselTimer?: ReturnType<typeof setInterval>;
   private firebaseService = inject(FirebaseService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
+    console.log
     this.carregar();
   }
+ionViewWillEnter(): void {
+  console.log('HOME ionViewWillEnter');
+}
 
+ionViewDidEnter(): void {
+  console.log('HOME ionViewDidEnter');
+}
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
   }
@@ -83,11 +91,15 @@ export class HomePagePage implements OnInit, OnDestroy {
         this.statsCarregados = true;
         this.carregando = false;
         this.slideAtivo = 0;
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.erro = err instanceof Error ? err.message : 'Falha ao carregar.';
         this.carregando = false;
         this.statsCarregados = true;
+
+        this.cdr.detectChanges();
       },
     });
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular';
@@ -25,15 +25,15 @@ import {
   Maquina,
   Equipe,
   RotaStop,
+  Rota
 } from '../models';
-import { MachineCardComponent } from '../machine-card/machine-card.component';
 
 @Component({
   selector: 'app-nova-rota.page',
   templateUrl: './nova-rota.page.page.html',
   styleUrls: ['./nova-rota.page.page.scss'],
   standalone: true,
-  imports: [MachineCardComponent, IonContent, IonButton, IonIcon, FormsModule, AppHeaderComponent],
+  imports: [ IonContent, IonButton, IonIcon, FormsModule, AppHeaderComponent],
 })
 export class NovaRotaPagePage implements OnInit {
 
@@ -53,7 +53,8 @@ export class NovaRotaPagePage implements OnInit {
   salvando = false;
   erro = '';
 
-  
+    private cdr = inject(ChangeDetectorRef);
+
   private firebaseService = inject(FirebaseService);
   constructor(
     private router: Router,
@@ -83,13 +84,12 @@ Record<
   Record<string,string[]>
 > = {};
 
-async ngOnInit(): Promise<void> {
+ngOnInit(): void {
 
-  await Promise.all([
-    this.carregarTecnicas(),
-    this.carregarEquipes(),
-    this.carregarMaquinas()
-  ]);
+  this.carregarTecnicas();
+  this.carregarEquipes();
+  this.carregarMaquinas();
+
 }
 async carregarTecnicas(): Promise<void> {
 
@@ -113,6 +113,7 @@ async carregarTecnicas(): Promise<void> {
               (a.ordem ?? 0) -
               (b.ordem ?? 0)
           );
+        this.cdr.detectChanges();
 
       },
 
@@ -122,6 +123,7 @@ async carregarTecnicas(): Promise<void> {
           '[TECNICAS]',
           err
         );
+        this.cdr.detectChanges();
 
       }
 
@@ -177,77 +179,119 @@ async carregarMaquinas(): Promise<void> {
 
 async salvar(): Promise<void> {
 
-  if (
-    !this.podeAvancar() ||
-    this.salvando
-  ) {
+  if (!this.podeAvancar() || this.salvando) {
     return;
   }
 
   this.salvando = true;
+  this.erro = '';
 
   try {
+
+    console.log('========== SALVAR ROTA ==========');
+    console.log('Nome da rota:', this.nomeRota);
+    console.log('Equipe ID:', this.equipeId);
+    console.log('Técnicas:', [...this.selecionadas]);
+    console.log('Máquinas selecionadas:', this.ordem);
 
     const equipe = this.equipes.find(
       e => e.id === this.equipeId
     );
 
-const stops: RotaStop[] =
-  this.ordem.map(
-    (m, index) => {
+    console.log('Equipe encontrada:', equipe);
 
-      const tecnicasDaMaquina =
-        this.tecnicasPorMaquina[m.id] || [];
+    const stops: RotaStop[] =
+      this.ordem.map((m, index) => {
 
-      return {
+        const tecnicasDaMaquina =
+          this.tecnicasPorMaquina[m.id] ?? [];
 
-        maquinaId: m.id,
+        console.log(
+          `Montando stop ${index + 1}`,
+          {
+            maquina: m,
+            tecnicas: tecnicasDaMaquina
+          }
+        );
 
-        tag: m.tag,
+        return {
+          maquinaId: m.id,
+          tag: m.tag,
+          nome: m.nome,
+          ordem: index + 1,
+          concluido: false,
+          tecnicas: tecnicasDaMaquina
+        };
+      });
 
-        nome: m.nome,
+    const payload: Partial<Rota> = {
+      nome: this.nomeRota.trim(),
+      equipeId: this.equipeId,
+      equipeNome: equipe?.nome,
+      tecnicas: [...this.selecionadas],
+      status: 'planejada',
+      stops
+    };
 
-        ordem: index + 1,
-
-        concluido: false,
-
-        tecnicas: tecnicasDaMaquina
-
-      };
-
-    }
-  );
-    const rotaId =
-      await this.firebaseService
-        .salvarRota({
-
-          nome:
-            this.nomeRota.trim(),
-
-          equipeId:
-            this.equipeId,
-
-          equipeNome:
-            equipe?.nome,
-
-          tecnicas:
-            [...this.selecionadas],
-
-          stops,
-
-          status:
-            'planejada'
-
-        });
+    console.log('===== PAYLOAD =====');
+    console.log(payload);
 
     console.log(
-      '[ROTA SALVA]',
+      '===== PAYLOAD JSON ====='
+    );
+    console.log(
+      JSON.stringify(
+        payload,
+        null,
+        2
+      )
+    );
+
+    // Procura qualquer undefined
+    const verificarUndefined = (
+      obj: any,
+      caminho = 'payload'
+    ): void => {
+
+      if (obj === undefined) {
+        console.error(
+          'UNDEFINED ENCONTRADO:',
+          caminho
+        );
+        return;
+      }
+
+      if (
+        obj &&
+        typeof obj === 'object'
+      ) {
+
+        Object.keys(obj).forEach(
+          chave => {
+
+            verificarUndefined(
+              obj[chave],
+              `${caminho}.${chave}`
+            );
+
+          }
+        );
+      }
+    };
+
+    verificarUndefined(payload);
+
+    const rotaId =
+      await this.firebaseService
+        .salvarRota(payload);
+
+    console.log(
+      'ROTA SALVA:',
       rotaId
     );
 
     await this.router.navigate([
       '/execucao',
-      rotaId
     ]);
 
   } catch (erro) {
@@ -258,16 +302,19 @@ const stops: RotaStop[] =
     );
 
     this.erro =
-      'Erro ao salvar a rota';
+      erro instanceof Error
+        ? erro.message
+        : 'Erro ao salvar rota';
 
   } finally {
 
     this.salvando = false;
 
+    console.log(
+      '========== FIM =========='
+    );
   }
-
-}
-  toggleTecnica(id: string): void {
+}  toggleTecnica(id: string): void {
     if (this.selecionadas.has(id)) {
       this.selecionadas.delete(id);
     } else {
@@ -279,6 +326,10 @@ const stops: RotaStop[] =
   isSelecionada(id: string): boolean {
     return this.selecionadas.has(id);
   }
+
+isMaquinaSelecionada(id: string): boolean {
+  return this.ordem.some(m => m.id === id);
+}
 
   podeAvancar(): boolean {
     if (this.passo === 1) return this.selecionadas.size > 0;
